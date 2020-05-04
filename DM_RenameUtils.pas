@@ -176,7 +176,7 @@ const
   sp = '****************************************************';
 begin
 {
-  Sadly, Delphiscript is not full fledged Delphi. Even though Delphiscript supports
+  Sadly, DelphiScript is not full fledged Delphi. Even though DelphiScript supports
   "out" variables, they seem to act somewhat weird under certain conditions.
   
   It was my desire not to close the Form when user cancels an input, so to give
@@ -184,7 +184,7 @@ begin
   so; it opens the message prompt with some Chinese characters in the edit box
   and once it does that, I get blank values instead of what the user wrote.
   
-  It may be a problem on Delphiscript or it may be the way xEdit calls Delphiscript,
+  It may be a problem on DelphiScript or it may be the way xEdit calls DelphiScript,
   I don't know. Maybe some day I'll get to find a workaround for that problem.
   In the meantime, this message tells the user I'm aware of this behavior and I 
   also think it's annoying.
