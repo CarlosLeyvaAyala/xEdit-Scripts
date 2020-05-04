@@ -866,7 +866,7 @@ begin
 //  gRecordName := ElementByName(ARecord, 'FULL - Name'); // Enable this line in the unlikely case this script process more kind of elements, so the input names would be user friendly.
   gRecordData := ARecord;
   gRecordName := ElementBySignature(ARecord, 'FULL');     // Disable this line in the unlikely case this script process more kind of elements, so the input names would be user friendly.
-  gRecordName := ElementBySignature(ARecord, 'DESC');     // Disable this line in the unlikely case this script process more kind of elements, so the input names would be user friendly.
+  //gRecordName := ElementBySignature(ARecord, 'DESC');
   gSignature := Signature(ARecord);
 
   // No record assigned. Try next record.
