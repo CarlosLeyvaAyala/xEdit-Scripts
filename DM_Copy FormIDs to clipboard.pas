@@ -1,11 +1,11 @@
 {
-  Copy file FormID to clipboard (to be used with GetFormFromFile() papyrus function for example)
-  Hotkey: Ctrl+I
-  Mode: Silent
+  This script copies FormIDs from many selected records to clipboard
 }
 unit CopyFormIDstoClipboard;
 var
-	lst: TStringList;
+	lst: TStringList;			// Global list
+	
+
 function Initialize: integer;
 begin
 	lst := TStringList.Create;
@@ -21,6 +21,7 @@ var
   frm: TForm;
   ed: TEdit;
 begin
+	// We need a temporary TEdit to being able to copy to clipboard
 	frm := TForm.Create(nil);
 	ed := TEdit.Create(frm);
 	try

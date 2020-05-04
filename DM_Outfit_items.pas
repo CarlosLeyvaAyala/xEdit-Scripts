@@ -1,39 +1,20 @@
 {
-  Copy file FormID to clipboard (to be used with GetFormFromFile() papyrus function for example)
-  Hotkey: Ctrl+I
-  Mode: Silent
+Use this script to find which armor pieces is an NPC using.
+
+Method:
+	Finds the name of the outfit used by an NPC.
+	Finds the name of the armors that belong to an outfit.
+	Outputs everything to clipboard
 }
 unit DM_Outfit_items;
 interface
 uses xEditApi
-//,'lib\mteFunctions'
 ,StrUtils, SysUtils, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Controls, Vcl.Dialogs, System.Classes
 ;
 implementation
 var
 	lst: TStringList;
 
-
-//function HasItem(rec: IInterface; s: string): boolean;
-//var
-//  name: string;
-//  items, li: IInterface;
-//  i: integer;
-//begin
-//  Result := false;
-//  items := ElementByPath(rec, 'Items');
-//  if not Assigned(items) then
-//    exit;
-//
-//  for i := 0 to ElementCount(items) - 1 do begin
-//    li := ElementByIndex(items, i);
-//    name := geev(LinksTo(ElementByPath(li, 'CNTO - Item\Item')), 'EDID');
-//    if name = s then begin
-//      Result := true;
-//      Break;
-//    end;
-//  end;
-//end;
 procedure ProcessOutfit(e: IInterface);
 var
   i: Integer;
@@ -63,7 +44,7 @@ function Process(e: IInterface): Integer;
 var
   sig: string;
 begin
-	lst.add( GetEditValue(ElementBySignature(e, 'EDID')) );
+  lst.add( GetEditValue(ElementBySignature(e, 'EDID')) );
   sig := Signature(e);
 
   if sig = 'NPC_' then begin
