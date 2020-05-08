@@ -48,7 +48,7 @@ function Finalize: Integer;
 
 implementation
 uses xEditApi
-//,'lib\mteFunctions'
+,'lib\mteFunctions'
 ,StrUtils, SysUtils, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Controls, Vcl.Dialogs, System.Classes
 ;
 
