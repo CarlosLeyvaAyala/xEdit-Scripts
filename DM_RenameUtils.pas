@@ -714,7 +714,7 @@ begin
     btnPrepend.Hint := 'Adds some word at the start of the name';
 
     btnPrependIf := CreateButton(btnL, btnPrepend.Top + btnH + btnDY, frm, frm);
-    btnPrependIf.Caption := 'Prepend &if…';
+    btnPrependIf.Caption := 'Prepend &if...';
     btnPrependIf.Hint := 'Adds some word at the start of the name if it contains some word';
 
     btnAppend := CreateButton(btnL, btnPrepend.Top + (btnH + btnDY) * 2, frm, frm);
