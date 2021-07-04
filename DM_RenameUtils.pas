@@ -1,6 +1,7 @@
 {
 	Name: xEdit - FULL Batch Renamer
 	Author: Carlos Leyva Ayala
+    Hotkey: F9
 
     The GetWAType function requires Mathor's MXPF library!
     https://github.com/matortheeternal/mxpf
@@ -11,7 +12,7 @@
 	This software is provided as is. It should be quite harmless 
 	because it only modifies names and doesn't give you the chance 
 	to modify anything else (which could actually be game breaking).
-	Even so, since we live in a society (heh�) that loves to sue for 
+	Even so, since we live in a society (heh...) that loves to sue for 
 	any stupid reason, so I must warn you I can not be held responsible 
 	if you somehow screw up something using this, trigger all those 
 	world ending nukes, or whatever.
@@ -53,7 +54,7 @@ uses xEditApi
 ;
 
 const
-  defaultDebugMode = true;          // Set to false if you wish
+  defaultDebugMode = false;          // Set to false if you wish
   defaultGetAllArmorTags = false;   // Set to true if you wish
   gExt = '.csv';
 

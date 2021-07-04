@@ -1,12 +1,11 @@
 # Ignore all files not from this project
-!DM_*
+*
+!DM*
 
 # Ignore misc
 *.7z
-*.pas.~*
+*.pas.*
 *.exe
-*.pas
 *.nif
 *.txt
 *.bak
-*.pas.backup.*
