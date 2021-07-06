@@ -1,6 +1,6 @@
 # Ignore all files not from this project
 *
-!DM*
+!DM*.pas
 
 # Ignore misc
 *.7z
