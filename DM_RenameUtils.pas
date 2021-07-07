@@ -3,9 +3,6 @@
 	Author: Carlos Leyva Ayala
     Hotkey: F9
 
-    The GetWAType function requires Mathor's MXPF library!
-    https://github.com/matortheeternal/mxpf
-
 	This is an xEdit script that modifies the FULL part of a record. 
 	In short: it will help you renaming items, weapons, magic, etc.
 	
@@ -49,15 +46,20 @@ function Finalize: Integer;
 
 implementation
 uses xEditApi
-,'lib\mteFunctions'
 ,StrUtils, SysUtils, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Controls, Vcl.Dialogs, System.Classes
 ;
 
 const
-  defaultDebugMode = false;          // Set to false if you wish
-  defaultGetAllArmorTags = false;   // Set to true if you wish
+  // ;>========================================================
+  // ;>===        CHANGE THESE TO SUIT YOUR NEEDS         ===<;
+  // ;>========================================================
+  defaultDebugMode = true;          // Set to false if you wish
+  defaultGetAllArmorTags = true;   // Set to true if you wish
   gExt = '.csv';
 
+  // ;>========================================================
+  // ;>===          DON'T CHANGE ANYTHING BELOW           ===<;
+  // ;>========================================================
   // All processing modes this script is capable of
   ptUndefined = 0;
 
@@ -154,9 +156,10 @@ begin
     ptPrepend: s := Format('Adding "%s" at the start of the names.', [gsFrom]);
     ptPrependIf: s := Format('Adding "%s" at the start of the names if they contain "%s"', [gsFrom, gsTo]); //'Adding "' + gsFrom + '" at the start of the names if they contain "' + gsTo + '".';
     ptGetType:
-      s :=  Format('Getting %s.', [aux1]) + nl + nl +
-            'IF THIS FUNCTION FAILS, REMEMBER TO DOWNLOAD MXPF LIBRARY AT:' + nl +
-            'https://github.com/matortheeternal/mxpf';
+      s :=  Format('Getting %s.', [aux1]);
+      // s :=  Format('Getting %s.', [aux1]) + nl + nl +
+      //       'IF THIS FUNCTION FAILS, REMEMBER TO DOWNLOAD MXPF LIBRARY AT:' + nl +
+      //       'https://github.com/matortheeternal/mxpf';
     ptMoveToTail: s := 'Moving "' + gsFrom + '" to the end.';
     ptMoveToFront: s := 'Moving "' + gsFrom + '" to the beginning.';  
     ptTrimFront: s := 'Removing leading blanks.';  
@@ -196,9 +199,23 @@ begin
 end;
 {$ENDREGION}
 
+function HasKeyword(e: IInterface; edid: string): boolean;
+var
+  kwda: IInterface;
+  n: integer;
+begin
+  Result := false;
+  kwda := ElementByPath(e, 'KWDA');
+  for n := 0 to ElementCount(kwda) - 1 do
+    if GetElementEditValues(LinksTo(ElementByIndex(kwda, n)), 'EDID') = edid then 
+      Result := true;
+end;
+
 {$REGION 'String processing functions'}
 procedure PCommit(AOldName, ANewName: string);
 begin
+  if AOldName = ANewName then
+    Exit;
   if not gDebugMode then
     SetEditValue(gRecordName, ANewName);
   LogNameChange(AOldName, ANewName);
@@ -322,44 +339,123 @@ begin
   PCommit(AOldItemName, r);
 end;
 
-procedure PGetWAType_InitWeap(AList: TStringList);
+function PGetWAType_WeapKeywords: TStringList;
 begin
-  AList.Append('WeapTypeBattleaxe=Bx');
-  AList.Append('WeapTypeBoundArrow=Br');
-  AList.Append('WeapTypeBow=Bw');
-  AList.Append('WeapTypeDagger=Dg');
-  AList.Append('WeapTypeGreatsword=Gs');
-  AList.Append('WeapTypeMace=Mc');
-  AList.Append('WeapTypeStaff=St');
-  AList.Append('WeapTypeSword=Sw');
-  AList.Append('WeapTypeWarAxe=Wx');
-  AList.Append('WeapTypeWarhammer=Wh');
+  Result := TStringList.Create;
+  Result.NameValueSeparator := '=';
+  
+  Result.Append('WeapTypeBattleaxe=Bx');
+  Result.Append('WeapTypeBoundArrow=Br');
+  Result.Append('WeapTypeBow=Bw');
+  Result.Append('WeapTypeDagger=Dg');
+  Result.Append('WeapTypeGreatsword=Gs');
+  Result.Append('WeapTypeMace=Mc');
+  Result.Append('WeapTypeStaff=St');
+  Result.Append('WeapTypeSword=Sw');
+  Result.Append('WeapTypeWarAxe=Wx');
+  Result.Append('WeapTypeWarhammer=Wh');
 end;
 
-procedure PGetWAType_InitArmo(AList: TStringList);
+function PGetWAType_ArmoKeywords: TStringList;
 begin
-  // PGetWAType: Possible armor tags
-  AList.Append('ArmorLight=Lt');
-  AList.Append('ArmorHeavy=Hv');
-  AList.Append('ArmorClothing=Cl');
-  AList.Append('ClothingCirclet=Cir');
-  AList.Append('ClothingNecklace=Nck');
-  AList.Append('ClothingRing=Rng');
-  AList.Append('ArmorShield=Sh');
-  AList.Append('ArmorJewelry=Jwl');
+  Result := TStringList.Create;
+  Result.NameValueSeparator := '=';
+  
+  // Main tags. These are the first to be searched for when not using the
+  // Get All (Types) option.
+  Result.Append('ArmorLight=Lt');
+  Result.Append('ArmorHeavy=Hv');
+  Result.Append('ArmorClothing=Cl');
+  Result.Append('ClothingCirclet=Cir');
+  Result.Append('ClothingNecklace=Nck');
+  Result.Append('ClothingRing=Rng');
+  Result.Append('ArmorShield=Sh');
+  Result.Append('ArmorJewelry=Jwl');
 
-  AList.Append('ArmorHelmet=Hlm');
-  AList.Append('ArmorCuirass=Cui');
-  AList.Append('ArmorGauntlets=Gau');
-  AList.Append('ArmorBoots=Boo');
+  // Secondary tags. (Hopefully) Only gotten when used Get All (Types).
+  Result.Append('ArmorHelmet=Hlm');
+  Result.Append('ArmorCuirass=Cui');
+  Result.Append('ArmorGauntlets=Gau');
+  Result.Append('ArmorBoots=Boo');
 
-  AList.Append('ClothingHead=Hat');
-  AList.Append('ClothingBody=Rob');
-  AList.Append('ClothingFeet=Sho');
-  AList.Append('ClothingHands=Glo');
+  Result.Append('ClothingHead=Hat');
+  Result.Append('ClothingBody=Rob');
+  Result.Append('ClothingFeet=Sho');
+  Result.Append('ClothingHands=Glo');
 
-  AList.Append('MaterialShieldHeavy=Hvs');
-  AList.Append('MaterialShieldLight=Lts');
+  Result.Append('MaterialShieldHeavy=Hvs');
+  Result.Append('MaterialShieldLight=Lts');
+end;
+
+function PGetWAType_AttrFromKeywords(aKeywordList: TStringList): TStringList;
+var 
+  i: Integer;
+begin
+  Result := TStringList.Create;
+  
+  try
+    for i := 0 to aKeywordList.Count - 1 do begin
+      if HasKeyword(gRecordData, aKeywordList.Names[i]) then begin
+        Result.Add(aKeywordList.ValueFromIndex[i]);
+        // r := r + Format(outS, [keys.ValueFromIndex[i]]);
+        if not gGetAllArmoType then
+          Break;
+      end;
+    end;
+  finally
+    aKeywordList.Free;
+  end;
+end;
+
+// Formats types. 
+// From a string list containing
+//        'Type1'
+//        'Type2'
+//        'TypeN'
+// to a string in the form 
+//        '[Type1][Type2][TypeN]'
+function PGetWAType_FmtTypes(aTypeList: TStringList): string;
+const
+  outS = '[%s]';
+var
+  i: Integer;
+begin
+  for i := 0 to aTypeList.Count - 1 do begin
+    aTypeList[i] := Format( outS, [aTypeList[i]] );
+  end;
+  Result := aTypeList.Text;
+  Result := Trim(StringReplace(Result, #13, '', [rfReplaceAll, rfIgnoreCase]));
+  Result := StringReplace(Result, #10, '', [rfReplaceAll, rfIgnoreCase]);
+end;
+
+// Returns name without old types
+function PGetWAType_BaseName(aOldName: string; aTypes: TStringList): string;
+var
+  i: Integer;
+begin
+  Result := aOldName;
+  for i := 0 to aTypes.Count - 1 do begin 
+    Result := StringReplace(Result, aTypes[i], '', [rfReplaceAll]);
+  end;
+end;
+
+function PGetWAType_AttrFromSpell(aSpell: IInterface): TStringList;
+begin
+  // Obtener efecto EFID
+  // Magic Effect Data\Magic Skill
+  // Magic Effect Data\Minimum Skill Level
+end;
+
+function PGetWAType_TypesBySignature: TStringList;
+begin
+  if (gSignature = 'WEAP') then
+    Result := PGetWAType_AttrFromKeywords(PGetWAType_WeapKeywords)
+  else if (gSignature = 'ARMO') then
+    Result := PGetWAType_AttrFromKeywords(PGetWAType_ArmoKeywords)
+  // else if (gSignature = 'SPEL') then
+  // else if (gSignature = 'BOOK') then
+  else
+    Result := nil
 end;
 
 procedure PGetWAType(AOldItemName: string);
@@ -369,49 +465,21 @@ const
   rtArmo = 20;
   outS = '[%s]';
 var
-  keys: TStringList;
-  rType: Integer;
-  i: Integer;
+  types: TStringList;
   r: string;
 begin
 {
-  Prepends weapon/armor type.
-
-  This function requires Mathor's MXPF library!
-  https://github.com/matortheeternal/mxpf
-
+  Prepends weapon/armor/spell/book type.
 }
-  if (gSignature = 'WEAP') then
-    rType := rtWeap
-  else if (gSignature = 'ARMO') then
-    rType := rtArmo
-  else
-    Exit;
+  types := PGetWAType_TypesBySignature;
+  if types = nil then 
+    Exit;     // Signature not supported
 
-  keys := TStringList.Create;
   try
-    keys.NameValueSeparator := '=';
-    case rType of
-      rtWeap: PGetWAType_InitWeap(keys);
-      rtArmo: PGetWAType_InitArmo(keys);
-    end;
-
-    // Prepend tags
-    r := '';
-    for i := 0 to keys.Count - 1 do begin
-      if HasKeyword(gRecordData, keys.Names[i]) then begin
-        r := r + Format(outS, [keys.ValueFromIndex[i]]);
-        if not gGetAllArmoType then
-          Break;
-      end;
-    end;
-
-    r := r + AOldItemName;
-    if r = AOldItemName then
-      Exit;
+    r := PGetWAType_FmtTypes(types) + PGetWAType_BaseName(AOldItemName, types);
     PCommit(AOldItemName, r);
   finally
-    keys.Free;
+    types.Free;
   end;
 end;
 
@@ -765,7 +833,7 @@ begin
     /////////////////////////////////////////
     btnGetType := CreateButton(grpL, grpFile.Top + (btnH + btnDY) * 3, frm, frm);
     btnGetType.Caption := 'Get t&ype';
-    btnGetType.Hint := 'Prepends weapon/armor type. Needs Mathor''s mxpf!';
+    btnGetType.Hint := 'Prepends weapon/armor/spell type. Needs Mathor''s mxpf!';
 
     chkGetAllArmoType := TCheckBox.Create(frm);
     chkGetAllArmoType.Parent := frm;

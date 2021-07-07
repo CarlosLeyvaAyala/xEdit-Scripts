@@ -1,6 +1,8 @@
 # Ignore all files not from this project
 *
 !DM*.pas
+# !DM*.ini
+!/DM_RenameUtils
 
 # Ignore misc
 *.7z
