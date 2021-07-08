@@ -2,7 +2,6 @@ unit AutoSpell;
 interface
 uses xEditApi;
 
-// function GetSpellName(aSpell: IInterface): TStringList;
 implementation
 
 function _SpellLevel(aMinSkill: Integer): Integer;
@@ -19,31 +18,42 @@ begin
         Result := 5
 end;
 
+// Find data from the Magic Effect
+procedure _GetMgFxData(aSpell: IInterface; aData: TStringList);
+var
+    rawLvl, lvl: Integer;
+    school, minLvl: string;
+    mgFx: IInterface;
+begin
+    aSpell := HighestOverrideOrSelf(aSpell, iHOverride);
+    mgFx :=LinksTo(ElementByPath(aSpell, 'Effects\Effect #0\EFID'));
+
+    school := Format(
+        '[SpellSchool%s]',
+        [GetElementEditValues(mgFx, 'Magic Effect Data\DATA\Magic Skill')]
+        );
+    rawLvl := GetElementEditValues(mgFx, 'Magic Effect Data\DATA\Minimum Skill Level');
+    lvl := _SpellLevel(rawLvl);
+
+    AddTag(aData, '[SpellSchool]', school);
+    AddTag(aData, '[SpellLvl]', IntToStr(rawLvl));
+    AddTag(aData, '[SpellLvlNum]', Format('[SpellLvlNum%d]', [lvl]));
+    AddTag(aData, '[SpellLvlName]', Format('[SpellLvlName%d]', [lvl]));
+end;
+
+// Get all spell data. This is the heart of this functionality.
 function _GetSpellData(aSpell: IInterface): TStringList;
 var
     lvl: Integer;
     school, minLvl: string;
-    i, mgFx: IInterface;
+    mgFx: IInterface;
 begin
     Result := CreateSortedList;
     try
         // Find raw values
-        AddOriginalName(aSpell, Result);
-
-        // Find data from the Magic Effect
-        aSpell := HighestOverrideOrSelf(aSpell, iHOverride);
-        mgFx :=LinksTo(ElementByPath(aSpell, 'Effects\Effect #0\EFID'));
-
-        school := Format(
-            '[SpellSchool%s]',
-            [GetElementEditValues(mgFx, 'Magic Effect Data\DATA\Magic Skill')]
-            );
-        lvl := _SpellLevel(GetElementEditValues(mgFx, 'Magic Effect Data\DATA\Minimum Skill Level'));
-
-        Result.Add(FmtNameValue('[SpellSchool]', school));
-        Result.Add(FmtNameValue('[SpellLvlNum]', Format('[SpellLvlNum%d]', [lvl])));
-        Result.Add(FmtNameValue('[SpellLvlName]', Format('[SpellLvlName%d]', [lvl])));
-
+        AddName(Result, aSpell);
+        AddEdid(Result, aSpell);
+        _GetMgFxData(aSpell, Result);
         Result := ReplaceTags(Result);
     except
         on E: Exception do begin
@@ -53,8 +63,18 @@ begin
     end;
 end;
 
+// Gets data with tags replaced. Used by spellbooks
+function GetSpellDataForParent(aSpell: IInterface): TStringList;
+begin
+    Result := _GetSpellData(aSpell);
+    ReplaceTagName(Result, tagName, tagSpellName);
+    ReplaceTagName(Result, tagOriginalName, tagSpellOriginalName);
+end;
+
+// This is the function the clients will be using
 function GetSpellName(aSpell: IInterface): string;
 begin
+    if Signature(aSpell) <> 'SPEL' then Exit;       // Safeguard
     Result := GenerateName('Spell', _GetSpellData(aSpell) );
 end;
 

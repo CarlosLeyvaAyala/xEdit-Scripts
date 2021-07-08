@@ -1,72 +1,96 @@
 unit Auto;
 interface
-uses xEditApi;
+uses xEditApi, 'DM_RenameUtils\AutoSpell', 'DM_RenameUtils\AutoBook';
 
 implementation
 
 const
     iHOverride = $FFFF;     // Maximum record override to search for. This is way bigger than the maximum SSE supports.
     sNameValSep = '=';
+    tagName = '[Name]';
+    tagOriginalName = '[OriginalName]';
+    tagSpellOriginalName = '[SpellOriginalName]';
+    tagSpellName = '[SpellName]';
+    tagSpell = '[Spell]';
+    tagEdid = '[EDID]';
 
-// Had to do this because aList.Values[index] doesn't work for some reason.
-function Value(aList: TStringList; index: Integer): string;
-var
-    del: string;
-begin
-    del := aList.Names[index] + sNameValSep;
-    Result := StringReplace(aList[index], del, '', [rfReplaceAll])
-end;
-
-function ValueFromName(aList: TStringList; aName: string): string;
-var
-    i: Integer;
-begin
-    i := aList.IndexOfName(aName);
-    if i < 0 then
-        Result := ''
-    else
-        Result := Value(aList, i);
-end;
-
+// Creates a string in the form 'Name=Value'
 function FmtNameValue(aName, aValue: string): string;
 begin
     Result := AName + sNameValSep + aValue;
 end;
 
-function CreateSortedList: TStringList;
+procedure AddTag(aData: TStringList; aTag, aValue: string);
 begin
-    Result := TStringList.Create;
-    Result.Sorted := true;
-    Result.NameValueSeparator := sNameValSep;
+    aData.Add(FmtNameValue(aTag, aValue));
 end;
 
+// Gets the name of the item as defined in the first esp that creates it
 function GetOriginalName(e: IInterface): string;
 begin
     e := MasterOrSelf(e);
     Result := GetElementEditValues(e, 'FULL');
 end;
 
-procedure AddOriginalName(e: IInterface; aList: TStringList);
+// Adds the tags '[OriginalName]=Name' and '[Name]=Name' to a tag list
+procedure AddName(aList: TStringList; e: IInterface);
 begin
-    aList.Add( FmtNameValue('[OriginalName]', GetOriginalName(e)) );
+    AddTag(aList, tagOriginalName, GetOriginalName(e));
+    AddTag(aList, tagName, GetElementEditValues(e, 'FULL'));
 end;
 
+// Adds the tag '[EDID]=Id' to a tag list
+procedure AddEdid(aList: TStringList; e: IInterface);
+begin
+    AddTag(aList, tagEdid, GetElementEditValues(e, 'EDID'));
+end;
+
+// Logs an unnamed record
+procedure _LogUnnamed(aData: TStringList);
+var
+    edid: string;
+begin
+    edid := ValueFromName(aData, tagEdid);
+    AddMessage(
+        Format('[%s] is an unnamed record. Skipping renaming.', [edid])
+    );
+end;
+
+// Logs info for a format not found
+procedure _LogNoFormat(aFmtName, aName: string);
+const
+    e1 = '***ERROR*** %s couldn''t be renamed because no format was found.';
+    e2 = 'If file "_Formats.ini" exists and has a line called "%s=Whatever you want your record to be named", then this is a programmer error.';
+begin
+    AddMessage( Format(e1 + #13#10 + e2, [aName, aFmtName]) );
+end;
+
+// Generates a name from a set of tags using it's required format.
+// This format is defined in _Formats.ini
 function GenerateName(recType: string; aData: TStringList): string;
 var
     i: Integer;
-    fmt: string;
+    originalName, fmt: string;
 begin
-    if ValueFromName(aData, '[OriginalName]') = '' then begin
-        AddMessage('Unnamed record found. Skipping renaming.');
+    originalName := ValueFromName(aData, '[OriginalName]');
+
+    // Probably not "optimum" to do this check so late, but quite convenient
+    // to do it here, since I won't forget to check it everywhere.
+    if originalName = '' then begin
+        _LogUnnamed(aData);
+        Result := '';
+        Exit;
     end;
 
     // cfgFormats is defined in Globals
     fmt := ValueFromName(cfgFormats, recType);
     if fmt = '' then begin
-        Result := '*** PROGRAMMER''s ERROR ***';
+        _LogNoFormat(recType, originalName);
+        Result := originalName;
         Exit;
     end;
 
+    // Actual replacing
     Result := fmt;
     for i := 0 to aData.Count - 1 do begin
         Result := StringReplace(
@@ -79,13 +103,13 @@ begin
 end;
 
 // Substitutes tags found for some record to the names the user actually wants.
+// Names are defined in _Names.ini
 function ReplaceTags(aList: TStringList): TStringList;
 var
     i: Integer;
     s, name, val: string;
     cfg: TStringList;
 begin
-    // aList.NameValueSeparator := sNameValSep;
     cfg := cfgNames;
     Result := CreateSortedList;
 
@@ -104,58 +128,29 @@ begin
     end;
 end;
 
-// function SpellLevel(aMinSkill: Integer): Integer;
-// begin
-//     if aMinSkill < 25 then
-//         Result := 1
-//     else if aMinSkill < 50 then
-//         Result := 2
-//     else if aMinSkill < 75 then
-//         Result := 3
-//     else if aMinSkill < 100 then
-//         Result := 4
-//     else
-//         Result := 5
-// end;
+// Does the actual renaming based on the record type
+function GetAutoName(e: IInterface): string;
+var
+    sig: string;
+begin
+    sig := Signature(e);
+    if sig = 'SPEL' then
+        Result := GetSpellName(e)
+    else if sig = 'BOOK' then
+        Result := GetBookName(e)
+    else begin
+        Result := GetElementEditValues(e, 'FULL');
+        AddMessage(sig + ' renaming still not supported');
+    end;
+end;
 
-// function GetSpellData(aSpell: IInterface): TStringList;
-// var
-//     lvl: Integer;
-//     school, minLvl: string;
-//     i, mgFx: IInterface;
-// begin
-//     Result := CreateSortedList;
-//     try
-//         // Find raw values
-//         AddOriginalName(aSpell, Result);
-
-//         // Find data from the Magic Effect
-//         aSpell := HighestOverrideOrSelf(aSpell, iHOverride);
-//         mgFx :=LinksTo(ElementByPath(aSpell, 'Effects\Effect #0\EFID'));
-
-//         school := Format(
-//             '[SpellSchool%s]',
-//             [GetElementEditValues(mgFx, 'Magic Effect Data\DATA\Magic Skill')]
-//             );
-//         lvl := SpellLevel(GetElementEditValues(mgFx, 'Magic Effect Data\DATA\Minimum Skill Level'));
-
-//         Result.Add(FmtNameValue('[SpellSchool]', school));
-//         Result.Add(FmtNameValue('[SpellLvlNum]', Format('[SpellLvlNum%d]', [lvl])));
-//         Result.Add(FmtNameValue('[SpellLvlName]', Format('[SpellLvlName%d]', [lvl])));
-
-//         Result := ReplaceTags(Result);
-//     except
-//         on E: Exception do begin
-//             Result.Free;
-//             raise e;
-//         end;
-//     end;
-// end;
-
-// function GetSpellName(aSpell: IInterface): string;
-// begin
-//     Result := GenerateName('Spell', GetSpellData(aSpell) );
-//     // AddMessage(cfgFormats.Text)
-// end;
+procedure ReplaceTagName(aTags: TStringList; aOldTag, aNewTag: string);
+var
+    val: string;
+begin
+    val := ValueFromName(aTags, aOldTag);
+    aTags.Delete(aTags.IndexOfName(aOldTag));
+    aTags.Add( FmtNameValue(aNewTag, val) );
+end;
 
 end.

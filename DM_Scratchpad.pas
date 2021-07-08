@@ -2,8 +2,9 @@ unit DM_Scratchpad;
 {
     Hotkey: F4
 }
+
 interface
-uses xEditApi, 'DM_RenameUtils\Auto', 'DM_RenameUtils\AutoSpell', 'DM_RenameUtils\Globals';
+uses xEditApi, 'DM_RenameUtils\Auto', 'DM_RenameUtils\Globals';
 
 implementation
 
@@ -16,7 +17,7 @@ function Process(e: IInterface): Integer;
 var
     s: TStringList;
 begin
-    AddMessage(GetSpellName(e));
+    AddMessage(GetAutoName(e));
 end;
 
 function Finalize: Integer;
