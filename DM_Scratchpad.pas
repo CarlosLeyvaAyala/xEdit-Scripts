@@ -3,10 +3,8 @@ unit DM_Scratchpad;
     Hotkey: F4
 }
 
-interface
 uses xEditApi, 'DM_RenameUtils\Auto', 'DM_RenameUtils\Globals';
 
-implementation
 
 function Initialize: Integer;
 begin

@@ -1,8 +1,5 @@
 unit AutoSpell;
-interface
 uses xEditApi;
-
-implementation
 
 function _SpellLevel(aMinSkill: Integer): Integer;
 begin

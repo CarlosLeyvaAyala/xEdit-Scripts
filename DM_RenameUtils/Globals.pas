@@ -4,8 +4,6 @@ var
     cfgNames: TStringList;
     cfgFormats: TStringList;
 
-implementation
-
 // Create a sorted list. Mostly used for tags when Auto mode is used
 function CreateSortedList: TStringList;
 begin

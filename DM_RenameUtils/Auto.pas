@@ -1,8 +1,5 @@
 unit Auto;
-interface
 uses xEditApi, 'DM_RenameUtils\AutoSpell', 'DM_RenameUtils\AutoBook';
-
-implementation
 
 const
     iHOverride = $FFFF;     // Maximum record override to search for. This is way bigger than the maximum SSE supports.

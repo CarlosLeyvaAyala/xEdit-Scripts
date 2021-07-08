@@ -1,14 +1,9 @@
 unit AutoBook;
 uses xEditApi;
 
-implementation
-
-
 // Get all spell data. This is the heart of this functionality.
 function _GetSpellbookData(aBook: IInterface): TStringList;
 var
-    // lvl: Integer;
-    // school, minLvl: string;
     spell: IInterface;
 begin
     Result := CreateSortedList;
