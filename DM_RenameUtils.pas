@@ -1,7 +1,8 @@
 {
+  Hotkey: F9
+  
 	Name: xEdit - FULL Batch Renamer
 	Author: Carlos Leyva Ayala
-    Hotkey: F9
 
 	This is an xEdit script that modifies the FULL part of a record. 
 	In short: it will help you renaming items, weapons, magic, etc.
@@ -9,7 +10,7 @@
 	This software is provided as is. It should be quite harmless 
 	because it only modifies names and doesn't give you the chance 
 	to modify anything else (which could actually be game breaking).
-	Even so, since we live in a society (heh...) that loves to sue for 
+	Even so, since We Live in a Society (heh...) that loves to sue for 
 	any stupid reason, so I must warn you I can not be held responsible 
 	if you somehow screw up something using this, trigger all those 
 	world ending nukes, or whatever.
@@ -86,6 +87,7 @@ const
   ptAuto = 1200;
   ptRestore = 1300;
   ptOverride = 1400;
+  ptFromEdid = 1500;
 
   pt = 00;
 
@@ -161,6 +163,7 @@ begin
     ptGetType: s :=  Format('Getting %s.', [aux1]);
     ptRestore: s :=  'Restoring names from master esp file.';
     ptOverride: s :=  'Writing names to overriding esp plugins.';
+    ptFromEdid: s :=  'Getting names from Editor ID (EDID).';
   else
     s := eNoProcessToLog;
   end;
@@ -463,6 +466,15 @@ begin
   PCommit(old, aNewName);
 end;
 
+procedure PFromEdid(aOldName: string);
+var
+  s: string;
+begin
+  s := GetElementEditValues(gRecordData, 'EDID');
+  s := StringReplace(s, '_', ' ', [rfReplaceAll]);
+  PCommit(aOldName, s);
+end;
+
 // Assigns the method that should be used to process a string, according
 // to user input.
 // At this point, <gsFrom>, <gsTo>... and all other global variables
@@ -493,6 +505,7 @@ begin
 
     ptRestore: PRestore(currentName);
     ptOverride: POverride(currentName);
+    ptFromEdid: PFromEdid(currentName);
     ptGetType: PGetWAType(currentName);
   else
     AddMessage(eNoProcessSelected2);
@@ -527,7 +540,8 @@ var
   t: TStringlist;
 begin
   Auto_LoadConfig;
-  if _SetupAndShowForm <> 0 then Exit;
+  Result := _SetupAndShowForm;
+  if Result <> 0 then Exit;
   
   // Create file only if it was asked to
   case gProcessingType of

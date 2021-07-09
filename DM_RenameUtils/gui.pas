@@ -150,6 +150,11 @@ begin
   _ContinueProcessing(ptOverride);
 end;
 
+procedure OnBtnFromEdidClick;
+begin
+  _ContinueProcessing(ptFromEdid);
+end;
+
 procedure OnChkDebugClick(Sender: TObject);
 begin
   gDebugMode := chkDebug.Checked;
@@ -232,7 +237,7 @@ function ShowForm: Integer;
 var
   btnExit, btnReplace, btnMoveFront, btnMoveTail, btnAppend, btnPrepend,
   btnPrependIf, btnTrimFront, btnTrimAll, btnTrimTail, btnGetType,
-  btnFExport, btnFImport, btnAuto, btnRestore, btnOverride: TButton;
+  btnFExport, btnFImport, btnAuto, btnRestore, btnOverride, btnFromEdid: TButton;
   grpMove, grpTrim, grpFile, grpSemi: TGroupBox;
 const
   // bigDY = 24;
@@ -355,6 +360,11 @@ begin
     btnOverride.Hint := 'Copies current name to the lastest *.esp loaded right now.';
     _NextTo(btnOverride, btnRestore);
 
+    btnFromEdid := CreateButton(grpSemi);
+    btnFromEdid.Caption := 'From EDID';
+    btnFromEdid.Hint := 'Copies EDID to FULL. Useful to easily translate to english.';
+    _NextTo(btnFromEdid, btnOverride);
+
     btnGetType := CreateButton(grpSemi);
     btnGetType.Caption := 'Get t&ype';
     btnGetType.Hint := 'Prepends weapon/armor/spell type.';
@@ -408,6 +418,7 @@ begin
     btnFImport.OnClick := OnBtnFileImportClick;
     btnRestore.OnClick := OnBtnRestoreClick;
     btnOverride.OnClick := OnBtnOverrideClick;
+    btnFromEdid.OnClick := OnBtnFromEdidClick;
     chkDebug.OnClick := OnChkDebugClick;
     chkGetAllArmoType.OnClick := OnChkGetAllArmoTypeClick;
 

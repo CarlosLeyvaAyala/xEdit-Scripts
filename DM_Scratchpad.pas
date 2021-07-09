@@ -13,9 +13,14 @@ end;
 
 function Process(e: IInterface): Integer;
 var
-    s: TStringList;
+    v: variant;
+//     s: TStringList;
 begin
-    AddMessage(GetAutoName(e));
+    v := GetElementNativeValues(e, 'DATA\Value');
+    e := HighestOverrideOrSelf(e, $FFFF);
+    SetElementNativeValues(e, 'DATA\Value', v);
+    // AddMessage();
+    // AddMessage(GetAutoName(e));
 end;
 
 function Finalize: Integer;
