@@ -28,15 +28,14 @@ begin
     Result := GetElementNativeValues(aBook, 'DATA\Flags\Teaches Spell');
 end;
 
-// [SpellOriginalName]
-// [SpellName]
-
 // This is the function the clients will be using
 function GetBookName(aBook: IInterface): string;
 begin
     if Signature(aBook) <> 'BOOK' then Exit;       // Safeguard
     if _IsSpellBook(aBook) then
-        Result := GenerateName('Spellbook', _GetSpellbookData(aBook));
+        Result := GenerateName('Spellbook', _GetSpellbookData(aBook))
+    else
+        Result := GetElementEditValues(aBook, 'FULL');
 end;
 
 end.

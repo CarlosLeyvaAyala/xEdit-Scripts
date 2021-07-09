@@ -54,7 +54,7 @@ const
   // ;>========================================================
   // ;>===        CHANGE THESE TO SUIT YOUR NEEDS         ===<;
   // ;>========================================================
-  defaultDebugMode = true;          // Set to true if you wish
+  defaultDebugMode = false;          // Set to true if you wish
   defaultGetAllArmorTags = true;    // Set to true if you wish
   gExt = '.csv';                    // Extension of the import/export file
 
