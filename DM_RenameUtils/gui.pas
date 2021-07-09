@@ -1,7 +1,19 @@
 unit gui;
 
+var
+  frm: TForm;                   // User input form
+  chkDebug: TCheckBox;          // Don't write changes if this is checked
+  chkGetAllArmoType: TCheckBox; // Get all tags for armors
+
 const
   cancelStr = '***ThIsF0rMw4SCaNcEL1eD!!111***';  // Made to deal with strange InputQuery behavior
+
+  // UI constants
+  btnW = 119;
+  btnH = 32;
+  ctrlDX = 24;
+  ctrlDY = 8;
+  bigDY = 24;
 
 var
     guiFrom: string;
@@ -123,6 +135,11 @@ begin
   _ContinueProcessing(ptGetType);
 end;
 
+procedure OnBtnAutoClick;
+begin
+  _ContinueProcessing(ptAuto);
+end;
+
 procedure OnChkDebugClick(Sender: TObject);
 begin
   gDebugMode := chkDebug.Checked;
@@ -134,36 +151,81 @@ begin
 end;
 
 
-function CreateButton(x, y: Integer; AFrm: TForm; AParent: TControl): TButton;
+function CreateButton(AParent: TControl): TButton;
 begin
-  Result := TButton.Create(AFrm);
+  Result := TButton.Create(frm);
   Result.Parent := AParent;
-  Result.Left := x;
-  Result.Top := y;
+  Result.Left := 0;
+  Result.Top := 0;
   Result.Width := btnW;
   Result.Height := btnH;
 end;
 
-function CreateGroupbx(x, y, dx, nButtons: Integer; AFrm: TForm; AParent: TControl): TGroupBox;
+// function CreateGroupbx(x, y, dx, nButtons: Integer; AFrm: TForm; AParent: TControl): TGroupBox;
+function CreateGroupbx(AParent: TControl): TGroupBox;
 const
   grpH = 65;
 begin
-    Result := TGroupBox.Create(AFrm);
+    Result := TGroupBox.Create(frm);
     Result.Parent := AParent;
-    Result.Left := x;
-    Result.Top := y;
-    Result.Width := (dx * (nButtons + 1)) + (btnW * nButtons);
-    Result.Height := grpH;
+    Result.Left := 0;
+    Result.Top := 0;
+    Result.Width := btnW;
+    Result.Height := btnH;
+end;
+
+// Places a control below other
+procedure _Below(me, he: TControl);
+begin
+  me.Left := he.Left;
+  me.Top := he.Top + he.Height + ctrlDY;
+end;
+
+procedure _NextTo(me, he: TControl);
+begin
+  me.Left := he.Left + he.Width + ctrlDX;
+  me.Top := he.Top;
+end;
+
+procedure _MoveTo(aCtrl: TControl; x, y: Integer);
+begin
+  aCtrl.Left := x;
+  aCtrl.Top := y;
+end;
+
+procedure _MoveBy(aCtrl: TControl; x, y: Integer);
+begin
+  aCtrl.Left := aCtrl.Left + x;
+  aCtrl.Top := aCtrl.Top + y;
+end;
+
+procedure _FirstGrpBtn(aCtrl: TControl);
+begin
+  _MoveTo(aCtrl, ctrlDX, ctrlDY * 5);
+end;
+
+procedure _AdjustGrpSize(aGrp: TGroupBox);
+var
+  i, maxW, maxH: Integer;
+begin
+  maxW := 0;
+  maxH := 0;
+  for i := 0 to aGrp.ControlCount - 1 do begin
+    maxW := Max(aGrp.Controls[i].Left + aGrp.Controls[i].Width, maxW);
+    maxH := Max(aGrp.Controls[i].Top + aGrp.Controls[i].Height, maxH);
+  end;
+  aGrp.Height := maxH + ctrlDY * 3;
+  aGrp.Width := maxW + ctrlDX;
 end;
 
 function ShowForm: Integer;
 var
   btnExit, btnReplace, btnMoveFront, btnMoveTail, btnAppend, btnPrepend,
   btnPrependIf, btnTrimFront, btnTrimAll, btnTrimTail, btnGetType,
-  btnFExport, btnFImport: TButton;
+  btnFExport, btnFImport, btnAuto: TButton;
   grpMove, grpTrim, grpFile: TGroupBox;
 const
-  bigDY = 24;
+  // bigDY = 24;
 
   btnL = 24;
   btnT = 30;
@@ -185,76 +247,108 @@ begin
     frm.Height := 370;
     frm.Width := 630;
 
-    btnReplace := CreateButton(btnL, btnT, frm, frm);
+    btnAuto := CreateButton(frm);
+    btnAuto.Caption := '&Auto';
+    btnAuto.Hint := 'Process using rules defined by you';
+    _MoveTo(btnAuto, btnL, btnT);
+
+    btnReplace := CreateButton(frm);
     btnReplace.Caption := '&Replace';
     btnReplace.Hint := 'Replaces a part of the name with other';
+    _Below(btnReplace, btnAuto);
+    _MoveBy(btnReplace, 0, bigDY);
 
-    btnPrepend := CreateButton(btnL, btnT + btnH + bigDY, frm, frm);
+    btnPrepend := CreateButton(frm);
     btnPrepend.Caption := '&Prepend';
     btnPrepend.Hint := 'Adds some word at the start of the name';
+    _Below(btnPrepend, btnReplace);
 
-    btnPrependIf := CreateButton(btnL, btnPrepend.Top + btnH + btnDY, frm, frm);
+    btnPrependIf := CreateButton(frm);
     btnPrependIf.Caption := 'Prepend &if...';
     btnPrependIf.Hint := 'Adds some word at the start of the name if it contains some word';
+    _Below(btnPrependIf, btnPrepend);
 
-    btnAppend := CreateButton(btnL, btnPrepend.Top + (btnH + btnDY) * 2, frm, frm);
-    btnAppend.Caption := '&Append';
+    btnAppend := CreateButton(frm);
+    btnAppend.Caption := 'App&end';
     btnAppend.Hint := 'Adds some word at the end of the name';
+    _Below(btnAppend, btnPrependIf);
 
     /////////////////////////////////////////
-    grpMove := CreateGroupbx(grpL, bigDY, grpBtnDX, 2, frm, frm);
+    // grpMove := CreateGroupbx(grpL, bigDY, grpBtnDX, 2, frm, frm);
+    grpMove := CreateGroupbx(frm);
     grpMove.Caption := 'Move to';
+    _NextTo(grpMove, btnAuto);
+    _MoveBy(grpMove, ctrlDX, 0);
 
-    btnMoveFront := CreateButton(grpBtnL, grpBtnT, frm, grpMove);
+    btnMoveFront := CreateButton(grpMove);
     btnMoveFront.Caption := '&Front';
     btnMoveFront.Hint := 'Moves some word to the beginning of the name';
+    _FirstGrpBtn(btnMoveFront);
 
-    btnMoveTail := CreateButton(grpBtnL + btnW + grpBtnDX, grpBtnT, frm, grpMove);
+    btnMoveTail := CreateButton(grpMove);
     btnMoveTail.Caption := '&Tail';
     btnMoveTail.Hint := 'Moves some word to the end of the name';
+    _NextTo(btnMoveTail, btnMoveFront);
+
+    _AdjustGrpSize(grpMove);
 
     /////////////////////////////////////////
-    grpTrim := CreateGroupbx(grpL, grpMove.Top + grpH + grpDY, grpBtnDX, 3, frm, frm);
+    // grpTrim := CreateGroupbx(grpL, grpMove.Top + grpH + grpDY, grpBtnDX, 3, frm, frm);
+    grpTrim := CreateGroupbx(frm);
     grpTrim.Caption := 'Trim';
+    _Below(grpTrim, grpMove);
 
-    btnTrimFront := CreateButton(grpBtnL, grpBtnT, frm, grpTrim);
+    btnTrimFront := CreateButton(grpTrim);
     btnTrimFront.Caption := 'Front';
     btnTrimFront.Hint := 'Deletes leading blank spaces';
+    _FirstGrpBtn(btnTrimFront);
 
-    btnTrimAll := CreateButton(grpBtnL + btnW + grpBtnDX, grpBtnT, frm, grpTrim);
+    btnTrimAll := CreateButton(grpTrim);
     btnTrimAll.Caption := 'All';
     btnTrimAll.Hint := 'Deletes leading and trailing blank spaces';
+    _NextTo(btnTrimAll, btnTrimFront);
 
-    btnTrimTail := CreateButton(grpBtnL + (btnW + grpBtnDX) * 2, grpBtnT, frm, grpTrim);
+    btnTrimTail := CreateButton(grpTrim);
     btnTrimTail.Caption := 'Tail';
     btnTrimTail.Hint := 'Deletes trailing blank spaces';
+    _NextTo(btnTrimTail, btnTrimAll);
+
+    _AdjustGrpSize(grpTrim);
 
     /////////////////////////////////////////
-    grpFile := CreateGroupbx(grpL, grpTrim.Top + grpH + grpDY, grpBtnDX, 2, frm, frm);
+    // grpFile := CreateGroupbx(grpL, grpTrim.Top + grpH + grpDY, grpBtnDX, 2, frm, frm);
+    grpFile := CreateGroupbx(frm);
     grpFile.Caption := 'File operations';
+    _Below(grpFile, grpTrim);
 
-    btnFExport := CreateButton(grpBtnL, grpBtnT, frm, grpFile);
+    btnFExport := CreateButton(grpFile);
     btnFExport.Caption := 'Export';
     btnFExport.Hint := 'Writes record name(s) to a file';
+    _FirstGrpBtn(btnFExport);
 
-    btnFImport := CreateButton(grpBtnL + btnW + grpBtnDX, grpBtnT, frm, grpFile);
+    btnFImport := CreateButton(grpFile);
     btnFImport.Caption := 'Import';
     btnFImport.Hint := 'Reads record name(s) from a file';
+    _NextTo(btnFImport, btnFExport);
+
+    _AdjustGrpSize(grpFile);
 
     /////////////////////////////////////////
-    btnGetType := CreateButton(grpL, grpFile.Top + (btnH + btnDY) * 3, frm, frm);
+    btnGetType := CreateButton(frm);
     btnGetType.Caption := 'Get t&ype';
     btnGetType.Hint := 'Prepends weapon/armor/spell type.';
+    _Below(btnGetType, grpFile);
+    _MoveBy(btnGetType, 0, bigDY);
 
     chkGetAllArmoType := TCheckBox.Create(frm);
     chkGetAllArmoType.Parent := frm;
     chkGetAllArmoType.Caption := '&Get all';
     chkGetAllArmoType.Checked := gGetAllArmoType;
-    chkGetAllArmoType.Width := btnW;
-    chkGetAllArmoType.Left := btnGetType.Left + btnW + grpBtnDX;
-    chkGetAllArmoType.Top := btnGetType.Top + (btnGetType.Height div 2)
-      - (chkGetAllArmoType.Height div 2);
     chkGetAllArmoType.Hint := 'When checked, gets all tags an armor has';
+    chkGetAllArmoType.Width := btnW;
+    chkGetAllArmoType.Height := btnH;
+    _NextTo(chkGetAllArmoType, btnGetType);
+    _MoveBy(chkGetAllArmoType, 0, btnH div 8);
 
     /////////////////////////////////////////
     chkDebug := TCheckBox.Create(frm);
@@ -264,19 +358,20 @@ begin
     chkDebug.Width := btnW;
     chkDebug.Left := btnL;
     chkDebug.Top := btnGetType.Top + btnH +  bigDY;
+    chkDebug.Height := btnH;
     chkDebug.Hint := 'Shows you the output of your operation, but doesn'#39't actually make changes on your file. Useful for testing purposes.';
 
-    btnExit := TButton.Create(frm);
-    btnExit.Parent := frm;
+    btnExit := CreateButton(frm);
     btnExit.Caption := 'Exit';
-    btnExit.Top := chkDebug.Top + bigDY;
+    _Below(btnExit, btnGetType);
+    _MoveBy(btnExit, 0, bigDY * 3);
     btnExit.Width := 225;
-    btnExit.Left := (frm.Width div 2) - (btnExit.Width div 2);
     btnExit.Cancel := true;
     btnExit.ModalResult := mrCancel;
 
     /////////////////////////////////////////
     // OnClick events
+    btnAuto.OnClick := OnBtnAutoClick;
     btnReplace.OnClick := OnBtnReplaceClick;
     btnPrepend.OnClick := OnBtnPrependClick;
     btnPrependIf.OnClick := OnBtnPrependIfClick;
@@ -296,6 +391,7 @@ begin
     // Procedurally adjust form
     frm.ClientWidth := grpTrim.Left + grpTrim.Width + btnL;
     frm.ClientHeight := btnExit.Top + btnH + bigDY;
+    btnExit.Left := (frm.Width div 2) - (btnExit.Width div 2);
 
     Result := frm.ShowModal;
   finally

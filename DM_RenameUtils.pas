@@ -96,14 +96,10 @@ const
   wUserCancel = ' Ending script. Process cancelled by user. ';
 
   // Error strings
-  eNoNameAssigned = 'Nothing to rename. Skipping item.';
+  eNoNameAssigned = '___ Record [%s] has no name. Skipping item.';
   eNoProcessSelected = 'No process has been selected. Shouldn''t have gotten here. Please contact this file''s author.';
   eNoProcessSelected2 = 'No process has been seleced. This is definitely a programming error. Please contact this file''s author.';
   eNoProcessToLog = 'No process to log. This file''s author forgot to add one.';
-
-  // UI constants
-  btnW = 119;
-  btnH = 25;
 
 var
   // Global variables
@@ -125,9 +121,6 @@ var
   // As of now, it's only used for replacing strings and "prepend if...".
   gsTo: string;
 var
-  frm: TForm;                   // User input form
-  chkDebug: TCheckBox;          // Don't write changes if this is checked
-  chkGetAllArmoType: TCheckBox; // Get all tags for armors
   lDebugIntroOutro: string;     // It says "test" when debugging
 
 
@@ -161,7 +154,7 @@ begin
     ptTrimTail: s := 'Removing trailing blanks.';
     ptFileExport: s := Format('Exporting names to "%s.csv".', [gsFrom]);
     ptFileImport: s := Format('Importing names from "%s.csv".', [gsFrom]);
-    ptAuto: s := 'Auto mode selected. Remember it will never be 100% perfect, but it''s at least 95% reliable.';
+    ptAuto: s := 'Auto mode selected.'#13#10'Remember it will never be 100% perfect because of the way some records are setup (not this script''s fault), but it''s at least 95% reliable.';
   else
     s := eNoProcessToLog;
   end;
@@ -437,8 +430,18 @@ begin
   PCommit(name, r);
 end;
 
+procedure PAuto(aOldName: string);
+var
+  n: string;
+begin
+    // AddMessage(aOldName);
+    // AddMessage(GetAutoName(gRecordData));
+  n := GetAutoName(gRecordData);
+  PCommit(aOldName, n);
+end;
+
 // Assigns the method that should be used to process a string, according
-// to the user input.
+// to user input.
 // At this point, <gsFrom>, <gsTo>... and all other global variables
 // should've been set by the user while using a Delphi Form.
 procedure ProcessItemName;
@@ -464,6 +467,8 @@ begin
 
     ptFileExport: PFileExport;
     ptFileImport: PFileImport;
+
+    ptAuto: PAuto(currentName);
   else
     AddMessage(eNoProcessSelected2);
   end;
@@ -496,6 +501,7 @@ function Initialize: Integer;
 var
   t: TStringlist;
 begin
+  Auto_LoadConfig;
   if _SetupAndShowForm <> 0 then Exit;
   
   // Create file only if it was asked to
@@ -526,11 +532,12 @@ begin
 
   // No record assigned. Try next record.
   if not Assigned(gRecordName) then begin
-    AddMessage(eNoNameAssigned);
+    AddMessage(
+      Format(eNoNameAssigned, [GetElementEditValues(ARecord, 'EDID')])
+    );
     Result := 0;
     Exit;
   end;
-
   // Everything's OK. Continue processing.
   ProcessItemName;
   Result := 0;
@@ -548,6 +555,8 @@ begin
   case gProcessingType of
     ptFileExport, ptFileImport: gTextFile.Free;
   end;
+  
+  Auto_UnloadConfig;
 
   Result := 0;
 end;

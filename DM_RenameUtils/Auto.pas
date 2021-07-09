@@ -137,7 +137,7 @@ begin
         Result := GetBookName(e)
     else begin
         Result := GetElementEditValues(e, 'FULL');
-        AddMessage(sig + ' renaming still not supported');
+        AddMessage(sig + ' auto renaming still not supported');
     end;
 end;
 
