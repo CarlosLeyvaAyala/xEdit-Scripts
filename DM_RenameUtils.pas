@@ -134,7 +134,7 @@ var
 // Logs when some name has changed
 procedure LogNameChange(AOldName, ANewName: string);
 begin
-  AddMessage(Format('"%s" renamed as "%s"', [AOldName, ANewName]));
+  AddMessage(Format('%-50.50s '#9 + '=>' + #9#9' %s', [AOldName, ANewName]));
 end;
 
 // Logs what the user wanted to do
@@ -466,13 +466,35 @@ begin
   PCommit(old, aNewName);
 end;
 
+// Separates a string by capitals.  
+// Example:
+//  'BDO BMSNecklaceBlack' => 'BDO BMS Necklace Black' 
+function _SeparateCapitals(aStr: string): string;
+var
+  r: TPerlRegex;
+begin
+  try
+    r := TPerlRegex.Create;
+    r.RegEx := '((?<=[a-z])[A-Z]|[A-Z](?=[a-z]))';
+    r.Subject := aStr;
+    r.Replacement := ' \1';
+    r.ReplaceAll;
+    Result := Trim(r.Subject);
+  finally
+    r.Free;
+  end;
+end;
+
+// Gets a clean name from EDID.  
+// Example:
+//  '_BDO_BMSNecklaceBlack' => 'BDO BMS Necklace Black' 
 procedure PFromEdid(aOldName: string);
 var
   s: string;
 begin
   s := GetElementEditValues(gRecordData, 'EDID');
   s := StringReplace(s, '_', ' ', [rfReplaceAll]);
-  PCommit(aOldName, s);
+  PCommit(aOldName, _SeparateCapitals(s));
 end;
 
 // Assigns the method that should be used to process a string, according
