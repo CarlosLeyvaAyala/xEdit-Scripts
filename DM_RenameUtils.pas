@@ -54,13 +54,15 @@ const
   // ;>========================================================
   // ;>===        CHANGE THESE TO SUIT YOUR NEEDS         ===<;
   // ;>========================================================
-  defaultDebugMode = false;          // Set to true if you wish
-  defaultGetAllArmorTags = true;    // Set to true if you wish
+  defaultDebugMode = false;         // Set to true if you wish
+  defaultGetAllArmorTags = false;   // Set to true if you wish
   gExt = '.csv';                    // Extension of the import/export file
 
   // ;>========================================================
   // ;>===          DON'T CHANGE ANYTHING BELOW           ===<;
   // ;>========================================================
+  chSig = 'FULL';       // Signature to change
+
   // All processing modes this script is capable of
   ptUndefined = 0;
 
@@ -82,6 +84,8 @@ const
   ptFileImport = 1100;
 
   ptAuto = 1200;
+  ptRestore = 1300;
+  ptOverride = 1400;
 
   pt = 00;
 
@@ -146,7 +150,6 @@ begin
     ptAppend: s := Format('Adding "%s" at the end of the names.', [gsFrom]);
     ptPrepend: s := Format('Adding "%s" at the start of the names.', [gsFrom]);
     ptPrependIf: s := Format('Adding "%s" at the start of the names if they contain "%s"', [gsFrom, gsTo]); //'Adding "' + gsFrom + '" at the start of the names if they contain "' + gsTo + '".';
-    ptGetType: s :=  Format('Getting %s.', [aux1]);
     ptMoveToTail: s := 'Moving "' + gsFrom + '" to the end.';
     ptMoveToFront: s := 'Moving "' + gsFrom + '" to the beginning.';  
     ptTrimFront: s := 'Removing leading blanks.';  
@@ -155,6 +158,9 @@ begin
     ptFileExport: s := Format('Exporting names to "%s.csv".', [gsFrom]);
     ptFileImport: s := Format('Importing names from "%s.csv".', [gsFrom]);
     ptAuto: s := 'Auto mode selected.'#13#10'Remember it will never be 100% perfect because of the way some records are setup (not this script''s fault), but it''s at least 95% reliable.';
+    ptGetType: s :=  Format('Getting %s.', [aux1]);
+    ptRestore: s :=  'Restoring names from master esp file.';
+    ptOverride: s :=  'Writing names to overriding esp plugins.';
   else
     s := eNoProcessToLog;
   end;
@@ -431,13 +437,30 @@ begin
 end;
 
 procedure PAuto(aOldName: string);
-var
-  n: string;
+// var
+  // n: string;
 begin
-    // AddMessage(aOldName);
-    // AddMessage(GetAutoName(gRecordData));
-  n := GetAutoName(gRecordData);
-  PCommit(aOldName, n);
+  // n := GetAutoName(gRecordData);
+  // PCommit(aOldName, n);
+  PCommit(aOldName, GetAutoName(gRecordData));
+end;
+
+procedure PRestore(aOldName: string);
+var
+  e: IInterface;
+begin
+  e := MasterOrSelf(gRecordData);
+  PCommit(aOldName, GetElementEditValues(e, chSig));
+end;
+
+procedure POverride(aNewName: string);
+var
+  old: IInterface;
+begin
+  gRecordData := HighestOverrideOrSelf(gRecordData, iHOverride);
+  gRecordName := ElementBySignature(gRecordData, chSig);
+  old := GetElementEditValues(gRecordData, chSig);
+  PCommit(old, aNewName);
 end;
 
 // Assigns the method that should be used to process a string, according
@@ -456,8 +479,6 @@ begin
     ptPrependIf: PPrependIf(currentName, gsFrom, gsTo);
     ptAppend: PAppend(currentName, gsFrom);
 
-    ptGetType: PGetWAType(currentName);
-
     ptMoveToFront: PMoveToFront(currentName, gsFrom);
     ptMoveToTail: PMoveToTail(currentName, gsFrom);
 
@@ -469,6 +490,10 @@ begin
     ptFileImport: PFileImport;
 
     ptAuto: PAuto(currentName);
+
+    ptRestore: PRestore(currentName);
+    ptOverride: POverride(currentName);
+    ptGetType: PGetWAType(currentName);
   else
     AddMessage(eNoProcessSelected2);
   end;
@@ -527,7 +552,7 @@ function Process(ARecord: IInterface): Integer;
 begin
 //  gRecordName := ElementByName(ARecord, 'FULL - Name'); // Enable this line in the unlikely case this script process more kind of elements, so the input names would be user friendly.
   gRecordData := ARecord;
-  gRecordName := ElementBySignature(ARecord, 'FULL');     // Disable this line in the unlikely case this script process more kind of elements, so the input names would be user friendly.
+  gRecordName := ElementBySignature(ARecord, chSig);     // Disable this line in the unlikely case this script process more kind of elements, so the input names would be user friendly.
   gSignature := Signature(ARecord);
 
   // No record assigned. Try next record.

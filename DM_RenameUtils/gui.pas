@@ -140,6 +140,16 @@ begin
   _ContinueProcessing(ptAuto);
 end;
 
+procedure OnBtnRestoreClick;
+begin
+  _ContinueProcessing(ptRestore);
+end;
+
+procedure OnBtnOverrideClick;
+begin
+  _ContinueProcessing(ptOverride);
+end;
+
 procedure OnChkDebugClick(Sender: TObject);
 begin
   gDebugMode := chkDebug.Checked;
@@ -222,8 +232,8 @@ function ShowForm: Integer;
 var
   btnExit, btnReplace, btnMoveFront, btnMoveTail, btnAppend, btnPrepend,
   btnPrependIf, btnTrimFront, btnTrimAll, btnTrimTail, btnGetType,
-  btnFExport, btnFImport, btnAuto: TButton;
-  grpMove, grpTrim, grpFile: TGroupBox;
+  btnFExport, btnFImport, btnAuto, btnRestore, btnOverride: TButton;
+  grpMove, grpTrim, grpFile, grpSemi: TGroupBox;
 const
   // bigDY = 24;
 
@@ -274,7 +284,6 @@ begin
     _Below(btnAppend, btnPrependIf);
 
     /////////////////////////////////////////
-    // grpMove := CreateGroupbx(grpL, bigDY, grpBtnDX, 2, frm, frm);
     grpMove := CreateGroupbx(frm);
     grpMove.Caption := 'Move to';
     _NextTo(grpMove, btnAuto);
@@ -293,7 +302,6 @@ begin
     _AdjustGrpSize(grpMove);
 
     /////////////////////////////////////////
-    // grpTrim := CreateGroupbx(grpL, grpMove.Top + grpH + grpDY, grpBtnDX, 3, frm, frm);
     grpTrim := CreateGroupbx(frm);
     grpTrim.Caption := 'Trim';
     _Below(grpTrim, grpMove);
@@ -316,7 +324,6 @@ begin
     _AdjustGrpSize(grpTrim);
 
     /////////////////////////////////////////
-    // grpFile := CreateGroupbx(grpL, grpTrim.Top + grpH + grpDY, grpBtnDX, 2, frm, frm);
     grpFile := CreateGroupbx(frm);
     grpFile.Caption := 'File operations';
     _Below(grpFile, grpTrim);
@@ -334,14 +341,27 @@ begin
     _AdjustGrpSize(grpFile);
 
     /////////////////////////////////////////
-    btnGetType := CreateButton(frm);
+    grpSemi := CreateGroupbx(frm);
+    grpSemi.Caption := 'Semi-automatic operations';
+    _Below(grpSemi, grpFile);
+
+    btnRestore := CreateButton(grpSemi);
+    btnRestore.Caption := 'Re&store';
+    btnRestore.Hint := 'Gets the name defined in the first *.esp loaded right now.';
+    _FirstGrpBtn(btnRestore);
+
+    btnOverride := CreateButton(grpSemi);
+    btnOverride.Caption := '&Override';
+    btnOverride.Hint := 'Copies current name to the lastest *.esp loaded right now.';
+    _NextTo(btnOverride, btnRestore);
+
+    btnGetType := CreateButton(grpSemi);
     btnGetType.Caption := 'Get t&ype';
     btnGetType.Hint := 'Prepends weapon/armor/spell type.';
-    _Below(btnGetType, grpFile);
-    _MoveBy(btnGetType, 0, bigDY);
+    _Below(btnGetType, btnRestore);
 
     chkGetAllArmoType := TCheckBox.Create(frm);
-    chkGetAllArmoType.Parent := frm;
+    chkGetAllArmoType.Parent := grpSemi;
     chkGetAllArmoType.Caption := '&Get all';
     chkGetAllArmoType.Checked := gGetAllArmoType;
     chkGetAllArmoType.Hint := 'When checked, gets all tags an armor has';
@@ -350,21 +370,23 @@ begin
     _NextTo(chkGetAllArmoType, btnGetType);
     _MoveBy(chkGetAllArmoType, 0, btnH div 8);
 
+    _AdjustGrpSize(grpSemi);
+
     /////////////////////////////////////////
     chkDebug := TCheckBox.Create(frm);
     chkDebug.Parent := frm;
     chkDebug.Caption := '&Don'#39't apply changes';
     chkDebug.Checked := gDebugMode;
     chkDebug.Width := btnW;
-    chkDebug.Left := btnL;
-    chkDebug.Top := btnGetType.Top + btnH +  bigDY;
     chkDebug.Height := btnH;
     chkDebug.Hint := 'Shows you the output of your operation, but doesn'#39't actually make changes on your file. Useful for testing purposes.';
+    _Below(chkDebug, btnAppend);
+    _MoveBy(chkDebug, 0, bigDY * 2);
 
     btnExit := CreateButton(frm);
     btnExit.Caption := 'Exit';
-    _Below(btnExit, btnGetType);
-    _MoveBy(btnExit, 0, bigDY * 3);
+    _Below(btnExit, grpSemi);
+    _MoveBy(btnExit, 0, bigDY * 2);
     btnExit.Width := 225;
     btnExit.Cancel := true;
     btnExit.ModalResult := mrCancel;
@@ -384,6 +406,8 @@ begin
     btnTrimTail.OnClick := OnBtnTrimTailClick;
     btnFExport.OnClick := OnBtnFileExportClick;
     btnFImport.OnClick := OnBtnFileImportClick;
+    btnRestore.OnClick := OnBtnRestoreClick;
+    btnOverride.OnClick := OnBtnOverrideClick;
     chkDebug.OnClick := OnChkDebugClick;
     chkGetAllArmoType.OnClick := OnChkGetAllArmoTypeClick;
 
