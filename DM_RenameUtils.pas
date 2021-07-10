@@ -134,7 +134,7 @@ var
 // Logs when some name has changed
 procedure LogNameChange(AOldName, ANewName: string);
 begin
-  AddMessage(Format('%-50.50s '#9 + '=>' + #9#9' %s', [AOldName, ANewName]));
+  AddMessage(Format('%-50.50s ->' + #9#9'%s', [AOldName, ANewName]));
 end;
 
 // Logs what the user wanted to do
@@ -579,6 +579,7 @@ begin
   if gDebugMode then lDebugIntroOutro := 'TEST '
   else lDebugIntroOutro := '';
   AddMessage(Format(lHeadder, ['STARTING BATCH RENAMING', lDebugIntroOutro, TimeToStr(Time)]));
+  AddMessage(nl + 'Only changed names will be shown here.' + nl);
   LogParameters;
 
   Result := 0;

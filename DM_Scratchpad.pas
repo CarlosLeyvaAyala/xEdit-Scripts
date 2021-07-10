@@ -3,7 +3,7 @@ unit DM_Scratchpad;
     Hotkey: F4
 }
 
-uses xEditApi, 'DM_RenameUtils\Auto', 'DM_RenameUtils\Globals';
+uses xEditApi, 'DM_RenameUtils\Auto', 'DM_RenameUtils\Globals', DM_SelectPlugin;
 
 
 function Initialize: Integer;
@@ -16,9 +16,21 @@ var
     v: variant;
 //     s: TStringList;
 begin
-    v := GetElementNativeValues(e, 'DATA\Value');
-    e := HighestOverrideOrSelf(e, $FFFF);
-    SetElementNativeValues(e, 'DATA\Value', v);
+    // v := GetElementNativeValues(e, 'DATA\Value');
+    // e := HighestOverrideOrSelf(e, $FFFF);
+    // SetElementNativeValues(e, 'DATA\Value', v);
+
+    // SetElementNativeValues(e, 'DATA\Weight', 0);
+
+    // SelectDirectory('asPromptStringOfSomeKind', '', '', nil);
+
+    AddMessage(
+        GetElementEditValues(
+            LinksTo(ElementByIndex(ElementByPath(e, 'INAM'), 0)),
+            'EDID'
+        )
+    );
+
     // AddMessage();
     // AddMessage(GetAutoName(e));
 end;
