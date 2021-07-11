@@ -1,5 +1,6 @@
 unit Auto;
-uses xEditApi, 'DM_RenameUtils\AutoSpell', 'DM_RenameUtils\AutoBook';
+uses xEditApi, 'DM_RenameUtils\AutoSpell',
+'DM_RenameUtils\AutoBook', 'DM_RenameUtils\AutoWeapon';
 
 const
     iHOverride = $FFFF;     // Maximum record override to search for. This is way bigger than the maximum SSE supports.
@@ -87,6 +88,8 @@ begin
         Exit;
     end;
 
+    LogExtDebug('Template format defined by you:'+ nl + fmt);
+
     // Actual replacing
     Result := fmt;
     for i := 0 to aData.Count - 1 do begin
@@ -97,6 +100,8 @@ begin
             [rfReplaceAll]
         );
     end;
+
+    LogExtDebug(nl + 'End result:'+ nl + Result + nl);
 end;
 
 // Substitutes tags found for some record to the names the user actually wants.
@@ -111,6 +116,7 @@ begin
     Result := CreateSortedList;
 
     try
+        LogExtDebug(nl + '*** Raw tags found ***'+ nl + aList.Text);
         for i := 0 to aList.Count - 1 do begin
             name := Value(aList, i);
             val := ValueFromName(cfg, Value(aList, i));
@@ -120,6 +126,7 @@ begin
             else
                 Result.Add(aList[i]);
         end;
+        LogExtDebug('*** Translated tags ***'+ nl + Result.Text);
     finally
         aList.Free;
     end;
@@ -135,6 +142,8 @@ begin
         Result := GetSpellName(e)
     else if sig = 'BOOK' then
         Result := GetBookName(e)
+    else if sig = 'WEAP' then
+        Result := GetWeaponName(e)
     else begin
         Result := GetElementEditValues(e, 'FULL');
         AddMessage(sig + ' auto renaming still not supported');

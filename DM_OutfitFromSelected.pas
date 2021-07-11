@@ -9,7 +9,7 @@ var
   gFileTo, gOft: IInterface;
   gCount: Integer;
 
-// Creates an empty outfit and returns it's handle.
+// Create an empty outfit and return it's handle.
 function _OutfitFromTemplate(aOName: string): IInterface;
 var
   base: IInterface;
@@ -43,6 +43,23 @@ begin
   if Assigned(Result) then AddMessage(Format('Adding more items to "%s".', [oName]))
   else Result := _OutfitFromTemplate(oName);
 end;
+
+// Remove farm clothes from cloned list.
+// Had to this because it seems completely emptying a list makes xEdit hang.
+procedure _CleanTemplatePijamas;
+var
+  items: IInterface;
+  iName: string;
+begin
+  items := ElementByPath(gOft, 'INAM');
+  iName := GetElementEditValues(
+      LinksTo( ElementByIndex(items, 0) ),
+      'EDID'
+  );
+  if iName = 'ClothesFarmClothes01' then RemoveElement(items, 0);
+end;
+
+
 
 function Initialize: Integer;
 begin
@@ -78,21 +95,6 @@ begin
   newItem := ElementAssign(items, HighInteger, nil, False);
   SetEditValue(newItem, Name(e));
   Inc(gCount);
-end;
-
-procedure _CleanTemplatePijamas;
-var
-  items: IInterface;
-  iName: string;
-begin
-  items := ElementByPath(gOft, 'INAM');
-  iName := GetElementEditValues(
-      LinksTo( ElementByIndex(items, 0) ),
-      'EDID'
-  );
-  if iName = 'ClothesFarmClothes01' then RemoveElement(items, 0);
-  // ClothesFarmClothes01 "Belted Tunic" [ARMO:0001BE1A]
-  // while ElementCount(items) > 0 do RemoveElement(items, 0);
 end;
 
 function Finalize: Integer;

@@ -99,6 +99,7 @@ Current ESP tags:
 Available for records of Spell type. Signature `SPEL`.
 
 Winning ESP tags:
+- [x] **[MagicFxName]** Name of the magic effect associated with this spell.
 - [x] **[SpellLvl]** Raw value of the Minimum Skill Level as defined in the esp. Usually `0`, `25`, `50`, `75` or `100`.
 - [x] **[SpellSchool]** Name of the magic school this spell belongs to. *Translated*.
 - [x] **[SpellLvlName]** Level of the spell as a name. Usually `Novice`, `Apprentice`, `Adept`, `Expert`, `Master`. *Translated*.
@@ -139,7 +140,8 @@ Format|Original|Processed
  `Spellbook=[[SpellSchool]] Spellbook ([SpellLvlName]): [SpellOriginalName]` | Spell Tome: Firebolt| [Des] Spellbook (Apprentice): Firebolt
  ^ | Spell Tome: Ash Rune| [Alt] Spellbook (Expert): Ash Rune
 
-
+## WeaponMagical
+- [ ] [EnchantName]
 
 *[Translated]: This value is automatically translated from whatever you defined in `_Names.ini`.
 *[Winning ESP]: Values are taken from the winning esp instead of the currently selected. Thus, making renaming compatible with patches already present in your load order.

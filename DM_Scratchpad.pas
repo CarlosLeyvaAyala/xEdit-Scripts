@@ -20,16 +20,10 @@ begin
     // e := HighestOverrideOrSelf(e, $FFFF);
     // SetElementNativeValues(e, 'DATA\Value', v);
 
-    // SetElementNativeValues(e, 'DATA\Weight', 0);
+    SetElementNativeValues(e, 'DATA\Weight', 0);
+    // SetElementNativeValues(e, 'DATA - Weight', 0.1);
 
     // SelectDirectory('asPromptStringOfSomeKind', '', '', nil);
-
-    AddMessage(
-        GetElementEditValues(
-            LinksTo(ElementByIndex(ElementByPath(e, 'INAM'), 0)),
-            'EDID'
-        )
-    );
 
     // AddMessage();
     // AddMessage(GetAutoName(e));

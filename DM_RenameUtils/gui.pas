@@ -2,8 +2,6 @@ unit gui;
 
 var
   frm: TForm;                   // User input form
-  chkDebug: TCheckBox;          // Don't write changes if this is checked
-  chkGetAllArmoType: TCheckBox; // Get all tags for armors
 
 const
   cancelStr = '***ThIsF0rMw4SCaNcEL1eD!!111***';  // Made to deal with strange InputQuery behavior
@@ -157,12 +155,17 @@ end;
 
 procedure OnChkDebugClick(Sender: TObject);
 begin
-  gDebugMode := chkDebug.Checked;
+  gDebugMode := TCheckBox(Sender).Checked;
+end;
+
+procedure OnChkExtDebugInfoClick(Sender: TObject);
+begin
+  gExtDebugInfo := TCheckBox(Sender).Checked;
 end;
 
 procedure OnChkGetAllArmoTypeClick(Sender: TObject);
 begin
-  gGetAllArmoType := chkGetAllArmoType.Checked;
+  gGetAllArmoType := TCheckBox(Sender).Checked;
 end;
 
 
@@ -187,6 +190,15 @@ begin
     Result.Top := 0;
     Result.Width := btnW;
     Result.Height := btnH;
+end;
+
+function _CreateCheckbox(AParent: TControl; aChecked: Boolean): TCheckBox;
+begin
+  Result := TCheckBox.Create(frm);
+  Result.Parent := AParent;
+  Result.Checked := aChecked;
+  Result.Width := btnW;
+  Result.Height := btnH;
 end;
 
 // Places a control below other
@@ -239,6 +251,7 @@ var
   btnPrependIf, btnTrimFront, btnTrimAll, btnTrimTail, btnGetType,
   btnFExport, btnFImport, btnAuto, btnRestore, btnOverride, btnFromEdid: TButton;
   grpMove, grpTrim, grpFile, grpSemi: TGroupBox;
+  chkDebug, chkExtDebugInfo, chkGetAllArmoType: TCheckBox;
 const
   // bigDY = 24;
 
@@ -370,28 +383,26 @@ begin
     btnGetType.Hint := 'Prepends weapon/armor/spell type.';
     _Below(btnGetType, btnRestore);
 
-    chkGetAllArmoType := TCheckBox.Create(frm);
-    chkGetAllArmoType.Parent := grpSemi;
+    chkGetAllArmoType := _CreateCheckbox(grpSemi, gGetAllArmoType);
     chkGetAllArmoType.Caption := '&Get all';
-    chkGetAllArmoType.Checked := gGetAllArmoType;
     chkGetAllArmoType.Hint := 'When checked, gets all tags an armor has';
-    chkGetAllArmoType.Width := btnW;
-    chkGetAllArmoType.Height := btnH;
     _NextTo(chkGetAllArmoType, btnGetType);
     _MoveBy(chkGetAllArmoType, 0, btnH div 8);
 
     _AdjustGrpSize(grpSemi);
 
     /////////////////////////////////////////
-    chkDebug := TCheckBox.Create(frm);
-    chkDebug.Parent := frm;
+
+    chkDebug := _CreateCheckbox(frm, gDebugMode);
     chkDebug.Caption := '&Don'#39't apply changes';
-    chkDebug.Checked := gDebugMode;
-    chkDebug.Width := btnW;
-    chkDebug.Height := btnH;
     chkDebug.Hint := 'Shows you the output of your operation, but doesn'#39't actually make changes on your file. Useful for testing purposes.';
     _Below(chkDebug, btnAppend);
     _MoveBy(chkDebug, 0, bigDY * 2);
+
+    chkExtDebugInfo := _CreateCheckbox(frm, gExtDebugInfo);
+    chkExtDebugInfo.Caption := 'Ext. Info';
+    chkExtDebugInfo.Hint := 'Writes more info to xEdit Messages. Use if you aren''t getting what you wanted.';
+    _Below(chkExtDebugInfo, chkDebug);
 
     btnExit := CreateButton(frm);
     btnExit.Caption := 'Exit';
@@ -420,6 +431,7 @@ begin
     btnOverride.OnClick := OnBtnOverrideClick;
     btnFromEdid.OnClick := OnBtnFromEdidClick;
     chkDebug.OnClick := OnChkDebugClick;
+    chkExtDebugInfo.OnClick := OnChkExtDebugInfoClick;
     chkGetAllArmoType.OnClick := OnChkGetAllArmoTypeClick;
 
     /////////////////////////////////////////

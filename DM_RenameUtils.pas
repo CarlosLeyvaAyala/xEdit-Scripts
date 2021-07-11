@@ -91,12 +91,12 @@ const
 
   pt = 00;
 
-  // Logging strings
-  lBigSeparator = '################';
-  nl = #13#10;
-  lHeadFoot = lBigSeparator + ' %s %s(%s) ' + lBigSeparator;
-  lHeadder = nl + lHeadFoot;
-  lFooter = nl + lHeadFoot + nl;
+  // // Logging strings
+  // lBigSeparator = '################';
+  // nl = #13#10;
+  // lHeadFoot = lBigSeparator + ' %s %s(%s) ' + lBigSeparator;
+  // lHeadder = nl + lHeadFoot;
+  // lFooter = nl + lHeadFoot + nl;
 
   // Warning strings
   wUserCancel = ' Ending script. Process cancelled by user. ';
@@ -159,7 +159,9 @@ begin
     ptTrimTail: s := 'Removing trailing blanks.';
     ptFileExport: s := Format('Exporting names to "%s.csv".', [gsFrom]);
     ptFileImport: s := Format('Importing names from "%s.csv".', [gsFrom]);
-    ptAuto: s := 'Auto mode selected.'#13#10'Remember it will never be 100% perfect because of the way some records are setup (not this script''s fault), but it''s at least 95% reliable.';
+    ptAuto: s := 'Auto mode selected.' + nl + 
+      'Remember it will never be 100% perfect because of the way some records are setup and your own defined formats' + nl + 
+      '(not this script''s fault, really), but it should be at least 95% reliable.';
     ptGetType: s :=  Format('Getting %s.', [aux1]);
     ptRestore: s :=  'Restoring names from master esp file.';
     ptOverride: s :=  'Writing names to overriding esp plugins.';
@@ -181,8 +183,10 @@ begin
   Result := false;
   kwda := ElementByPath(e, 'KWDA');
   for n := 0 to ElementCount(kwda) - 1 do
-    if GetElementEditValues(LinksTo(ElementByIndex(kwda, n)), 'EDID') = edid then 
+    if GetElementEditValues(LinksTo(ElementByIndex(kwda, n)), 'EDID') = edid then begin
       Result := true;
+      Exit;
+    end;
 end;
 
 {$REGION 'String processing functions'}
@@ -473,8 +477,8 @@ function _SeparateCapitals(aStr: string): string;
 var
   r: TPerlRegex;
 begin
+  r := TPerlRegex.Create;
   try
-    r := TPerlRegex.Create;
     r.RegEx := '((?<=[a-z])[A-Z]|[A-Z](?=[a-z]))';
     r.Subject := aStr;
     r.Replacement := ' \1';

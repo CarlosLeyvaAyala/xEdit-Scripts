@@ -3,6 +3,37 @@ unit Globals;
 var
     cfgNames: TStringList;
     cfgFormats: TStringList;
+const
+    gExtDebugInfo = false;
+
+    // Logging strings
+    lBigSeparator = '################';
+    nl = #13#10;
+    lHeadFoot = lBigSeparator + ' %s %s(%s) ' + lBigSeparator;
+    lHeadder = nl + lHeadFoot;
+    lFooter = nl + lHeadFoot + nl;
+
+procedure LogExtDebug(aMsg: string);
+begin
+    if gExtDebugInfo then AddMessage(aMsg);
+end;
+
+function HasKeywordContaining(e: IInterface; edid: string): string;
+var
+  kwda: IInterface;
+  n: integer;
+  kw: string;
+begin
+  Result := '';
+  kwda := ElementByPath(e, 'KWDA');
+  for n := 0 to ElementCount(kwda) - 1 do begin
+    kw := GetElementEditValues(LinksTo(ElementByIndex(kwda, n)), 'EDID');
+    if ContainsStr(kw, edid) then begin
+      Result := kw;
+      Exit;
+    end;
+  end;
+end;
 
 // Create a sorted list. Mostly used for tags when Auto mode is used
 function CreateSortedList: TStringList;
