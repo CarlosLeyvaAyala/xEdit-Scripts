@@ -10,6 +10,7 @@ begin
   Result.Add('Greatsword');
   Result.Add('Battleaxe');
   Result.Add('Bow');
+  Result.Add('Axe');
 end;
 
 // Cleans everything after 'Sword of', 'Staff of'...

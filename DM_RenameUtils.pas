@@ -88,15 +88,9 @@ const
   ptRestore = 1300;
   ptOverride = 1400;
   ptFromEdid = 1500;
+  ptDiagnose = 1600;
 
   pt = 00;
-
-  // // Logging strings
-  // lBigSeparator = '################';
-  // nl = #13#10;
-  // lHeadFoot = lBigSeparator + ' %s %s(%s) ' + lBigSeparator;
-  // lHeadder = nl + lHeadFoot;
-  // lFooter = nl + lHeadFoot + nl;
 
   // Warning strings
   wUserCancel = ' Ending script. Process cancelled by user. ';
@@ -117,6 +111,8 @@ var
   gGetAllArmoType: Boolean;    // Get all tags for armors?
   gCaseSensitive: Boolean;     // Unused for the moment
   gTextFile: TStringList;      // File contents for Export/Import
+  gWarningAll: TStringList;    // All warnings found for selected records.
+  gWarningCurr: TStringList;   // Warnings for currently processed record.
 
   // This variable is the most used to make changes on names. The user is prompted
   // to set its value via InputQuery.
@@ -166,6 +162,7 @@ begin
     ptRestore: s :=  'Restoring names from master esp file.';
     ptOverride: s :=  'Writing names to overriding esp plugins.';
     ptFromEdid: s :=  'Getting names from Editor ID (EDID).';
+    ptDiagnose: s :=  'Diagnosing potential problems.';
   else
     s := eNoProcessToLog;
   end;
@@ -195,6 +192,7 @@ begin
   if AOldName = ANewName then Exit;
   if not gDebugMode then SetEditValue(gRecordName, ANewName);
   LogNameChange(AOldName, ANewName);
+  // PDiagnose(ANewName);
 end;
 
 // Trims leading and trailing blanks from a name.
@@ -444,14 +442,11 @@ begin
 end;
 
 procedure PAuto(aOldName: string);
-// var
-  // n: string;
 begin
-  // n := GetAutoName(gRecordData);
-  // PCommit(aOldName, n);
   PCommit(aOldName, GetAutoName(gRecordData));
 end;
 
+// Restores a name from master
 procedure PRestore(aOldName: string);
 var
   e: IInterface;
@@ -460,6 +455,7 @@ begin
   PCommit(aOldName, GetElementEditValues(e, chSig));
 end;
 
+// Propagates name to overrides
 procedure POverride(aNewName: string);
 var
   old: IInterface;
@@ -501,6 +497,47 @@ begin
   PCommit(aOldName, _SeparateCapitals(s));
 end;
 
+// Finds if a name has some repeated word anywhere
+function _DiagRepeatedWord(r: TPerlRegex): Boolean;
+begin
+  r.RegEx := '(\b\w+\b).*\b\1\b';
+  Result := r.Match;
+end;
+
+procedure _WarningLogCurrent(aMsg: string);
+begin 
+  gWarningCurr.Add(#9'* ' + aMsg);
+end;
+
+procedure _WarningDumpCurrent;
+begin
+  if gWarningCurr.Count > 0 then
+    gWarningAll.Text := gWarningAll.Text + GetEditValue(gRecordName) + nl + gWarningCurr.Text + nl;
+end;
+
+procedure _WarningShowAll;
+begin
+  if gWarningAll.Count > 0 then begin
+    AddMessage(nl + nl + lBigSeparator + ' WARNING ' + lBigSeparator + nl);
+    AddMessage(gWarningAll.Text + nl + 'REMEMBER ALL THESE WARNINGS NEED TO BE MANUALLY FIXED.');
+  end
+  else AddMessage(nl + 'No warnings were found.');
+end;
+
+// Diagnoses an already processed name to find possible warnings.
+procedure PDiagnose(aName: string);
+var
+  r: TPerlRegex;
+begin
+  r := TPerlRegex.Create;
+  try
+    r.Subject := aName;
+    if _DiagRepeatedWord(r) then _WarningLogCurrent('Seems to have repeated words.');
+  finally
+    r.Free;
+  end;
+end;
+
 // Assigns the method that should be used to process a string, according
 // to user input.
 // At this point, <gsFrom>, <gsTo>... and all other global variables
@@ -533,6 +570,8 @@ begin
     ptOverride: POverride(currentName);
     ptFromEdid: PFromEdid(currentName);
     ptGetType: PGetWAType(currentName);
+    
+    ptDiagnose: PDiagnose(currentName);
   else
     AddMessage(eNoProcessSelected2);
   end;
@@ -560,12 +599,20 @@ begin
   end;
 end;
 
+procedure _InitLists;
+begin
+  Auto_LoadConfig;
+  gWarningAll := TStringList.Create;
+  gWarningCurr := TStringList.Create;
+end;
+
 {$REGION 'xEdit processing functions'}
 function Initialize: Integer;
 var
   t: TStringlist;
 begin
-  Auto_LoadConfig;
+  _InitLists;
+
   Result := _SetupAndShowForm;
   if Result <> 0 then Exit;
   
@@ -583,7 +630,8 @@ begin
   if gDebugMode then lDebugIntroOutro := 'TEST '
   else lDebugIntroOutro := '';
   AddMessage(Format(lHeadder, ['STARTING BATCH RENAMING', lDebugIntroOutro, TimeToStr(Time)]));
-  AddMessage(nl + 'Only changed names will be shown here.' + nl);
+  if gProcessingType <> ptDiagnose then
+    AddMessage(nl + 'Only changed names will be shown here.' + nl);
   LogParameters;
 
   Result := 0;
@@ -591,6 +639,8 @@ end;
 
 function Process(ARecord: IInterface): Integer;
 begin
+  gWarningCurr.Clear;
+  
 //  gRecordName := ElementByName(ARecord, 'FULL - Name'); // Enable this line in the unlikely case this script process more kind of elements, so the input names would be user friendly.
   gRecordData := ARecord;
   gRecordName := ElementBySignature(ARecord, chSig);     // Disable this line in the unlikely case this script process more kind of elements, so the input names would be user friendly.
@@ -604,13 +654,25 @@ begin
     Result := 0;
     Exit;
   end;
+  
   // Everything's OK. Continue processing.
   ProcessItemName;
+  PDiagnose( GetEditValue(gRecordName) );
+  _WarningDumpCurrent;
   Result := 0;
+end;
+
+procedure _DestroyLists;
+begin
+  Auto_UnloadConfig;
+  gWarningAll.Free;
+  gWarningCurr.Free;
 end;
 
 function Finalize: Integer;
 begin
+  _WarningShowAll;
+
   if (gProcessingType = ptFileExport) and (not gDebugMode) then begin
     gTextFile.Sort;
     gTextFile.SaveToFile(gsFrom + gExt);
@@ -621,8 +683,8 @@ begin
   case gProcessingType of
     ptFileExport, ptFileImport: gTextFile.Free;
   end;
-  
-  Auto_UnloadConfig;
+
+  _DestroyLists;
 
   Result := 0;
 end;

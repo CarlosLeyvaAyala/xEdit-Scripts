@@ -153,6 +153,11 @@ begin
   _ContinueProcessing(ptFromEdid);
 end;
 
+procedure OnBtnDiagnoseClick;
+begin
+  _ContinueProcessing(ptDiagnose);
+end;
+
 procedure OnChkDebugClick(Sender: TObject);
 begin
   gDebugMode := TCheckBox(Sender).Checked;
@@ -248,7 +253,7 @@ end;
 function ShowForm: Integer;
 var
   btnExit, btnReplace, btnMoveFront, btnMoveTail, btnAppend, btnPrepend,
-  btnPrependIf, btnTrimFront, btnTrimAll, btnTrimTail, btnGetType,
+  btnPrependIf, btnTrimFront, btnTrimAll, btnTrimTail, btnGetType, btnDiagnose,
   btnFExport, btnFImport, btnAuto, btnRestore, btnOverride, btnFromEdid: TButton;
   grpMove, grpTrim, grpFile, grpSemi: TGroupBox;
   chkDebug, chkExtDebugInfo, chkGetAllArmoType: TCheckBox;
@@ -300,6 +305,12 @@ begin
     btnAppend.Caption := 'App&end';
     btnAppend.Hint := 'Adds some word at the end of the name';
     _Below(btnAppend, btnPrependIf);
+
+    btnDiagnose := CreateButton(frm);
+    btnDiagnose.Caption := 'Diagnose';
+    btnDiagnose.Hint := 'Tries to find potential problems with names in selected records.';
+    _Below(btnDiagnose, btnAppend);
+    _MoveBy(btnDiagnose, 0, bigDY);
 
     /////////////////////////////////////////
     grpMove := CreateGroupbx(frm);
@@ -396,7 +407,7 @@ begin
     chkDebug := _CreateCheckbox(frm, gDebugMode);
     chkDebug.Caption := '&Don'#39't apply changes';
     chkDebug.Hint := 'Shows you the output of your operation, but doesn'#39't actually make changes on your file. Useful for testing purposes.';
-    _Below(chkDebug, btnAppend);
+    _Below(chkDebug, btnDiagnose);
     _MoveBy(chkDebug, 0, bigDY * 2);
 
     chkExtDebugInfo := _CreateCheckbox(frm, gExtDebugInfo);
@@ -430,6 +441,7 @@ begin
     btnRestore.OnClick := OnBtnRestoreClick;
     btnOverride.OnClick := OnBtnOverrideClick;
     btnFromEdid.OnClick := OnBtnFromEdidClick;
+    btnDiagnose.OnClick := OnBtnDiagnoseClick;
     chkDebug.OnClick := OnChkDebugClick;
     chkExtDebugInfo.OnClick := OnChkExtDebugInfoClick;
     chkGetAllArmoType.OnClick := OnChkGetAllArmoTypeClick;
