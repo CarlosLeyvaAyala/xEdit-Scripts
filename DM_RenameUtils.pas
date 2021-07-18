@@ -170,6 +170,26 @@ begin
   AddMessage(s + nl);
 end;
 
+procedure _WarningLogCurrent(aMsg: string);
+begin 
+  gWarningCurr.Add(#9'* ' + aMsg);
+end;
+
+procedure _WarningDumpCurrent;
+begin
+  if gWarningCurr.Count > 0 then
+    gWarningAll.Text := gWarningAll.Text + GetEditValue(gRecordName) + nl + gWarningCurr.Text + nl;
+end;
+
+procedure _WarningShowAll;
+begin
+  if gWarningAll.Count > 0 then begin
+    AddMessage(nl + nl + lBigSeparator + ' WARNING ' + lBigSeparator + nl);
+    AddMessage(gWarningAll.Text + nl + 'REMEMBER ALL THESE WARNINGS NEED TO BE MANUALLY FIXED.');
+  end
+  else AddMessage(nl + 'No warnings were found.');
+end;
+
 {$ENDREGION}
 
 function HasKeyword(e: IInterface; edid: string): boolean;
@@ -504,35 +524,26 @@ begin
   Result := r.Match;
 end;
 
-procedure _WarningLogCurrent(aMsg: string);
-begin 
-  gWarningCurr.Add(#9'* ' + aMsg);
-end;
-
-procedure _WarningDumpCurrent;
+// Finds if a name has two symbols in a row
+function _DiagHasManySymbols(r: TPerlRegex): Boolean;
 begin
-  if gWarningCurr.Count > 0 then
-    gWarningAll.Text := gWarningAll.Text + GetEditValue(gRecordName) + nl + gWarningCurr.Text + nl;
-end;
-
-procedure _WarningShowAll;
-begin
-  if gWarningAll.Count > 0 then begin
-    AddMessage(nl + nl + lBigSeparator + ' WARNING ' + lBigSeparator + nl);
-    AddMessage(gWarningAll.Text + nl + 'REMEMBER ALL THESE WARNINGS NEED TO BE MANUALLY FIXED.');
-  end
-  else AddMessage(nl + 'No warnings were found.');
+  r.RegEx := '[^\w\s]\s*[^\w\s]';
+  Result := r.Match;
 end;
 
 // Diagnoses an already processed name to find possible warnings.
 procedure PDiagnose(aName: string);
+const 
+  repWords = 'Seems to have repeated words.';
+  manySymb = 'Seems to have many symbols in a row. Make sure that was intended.';
 var
   r: TPerlRegex;
 begin
   r := TPerlRegex.Create;
   try
     r.Subject := aName;
-    if _DiagRepeatedWord(r) then _WarningLogCurrent('Seems to have repeated words.');
+    if _DiagRepeatedWord(r) then _WarningLogCurrent(repWords);
+    if _DiagHasManySymbols(r) then _WarningLogCurrent(manySymb);
   finally
     r.Free;
   end;
@@ -657,7 +668,7 @@ begin
   
   // Everything's OK. Continue processing.
   ProcessItemName;
-  PDiagnose( GetEditValue(gRecordName) );
+  if gProcessingType <> ptDiagnose then PDiagnose( GetEditValue(gRecordName) );
   _WarningDumpCurrent;
   Result := 0;
 end;

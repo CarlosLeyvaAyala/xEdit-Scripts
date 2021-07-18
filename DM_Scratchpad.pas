@@ -15,16 +15,18 @@ function Process(e: IInterface): Integer;
 var
     v: variant;
 //     s: TStringList;
+    s: string;
 begin
     // v := GetElementNativeValues(e, 'DATA\Value');
     // e := HighestOverrideOrSelf(e, $FFFF);
     // SetElementNativeValues(e, 'DATA\Value', v);
 
-    SetElementNativeValues(e, 'DATA\Weight', 0);
+    // SetElementNativeValues(e, 'DATA\Weight', 0);
     // SetElementNativeValues(e, 'DATA - Weight', 0.1);
 
-    // SelectDirectory('asPromptStringOfSomeKind', '', '', nil);
-
+    // s := Format('actors\character\Maxick\Hum\%s.dds', [GetElementEditValues(e, 'EDID')]);
+    // SetElementEditValues(e, 'Textures (RGB/A)\TX01', s);
+    //
     // AddMessage();
     // AddMessage(GetAutoName(e));
 end;
