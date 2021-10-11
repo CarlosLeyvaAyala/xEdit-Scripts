@@ -89,6 +89,7 @@ begin
     gFileTo,
     GetFileName( GetFile(e) )
   );
+  CleanMasters(gFileTo);   // Removes self as master.
 
   // Add this armor to outfit
   items := ElementByPath(gOft, 'INAM');
