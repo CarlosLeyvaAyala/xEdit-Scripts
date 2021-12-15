@@ -3,7 +3,10 @@ unit DM_OutfitFromSelected;
     Hotkey: Shift+F4
 }
 
-uses xEditApi, DM_SelectPlugin;
+uses xEditApi, DM_SelectPlugin, 'lib\mteFiles';
+
+const
+  fileName = 'DM Unique Outfits.esp';
 
 var
   gFileTo, gOft: IInterface;
@@ -59,22 +62,40 @@ begin
   if iName = 'ClothesFarmClothes01' then RemoveElement(items, 0);
 end;
 
+procedure _CreateGroup;
+var
+  OTFT: IInterface;
+begin
+  // Make sure OTFT exists
+  OTFT := GroupBySignature(FileByLoadOrder(0), 'OTFT');
+  wbCopyElementToFile(OTFT, gFileTo, true, false);
+  // if not HasGroup(GetFile(gFileTo), 'OTFT') then AddMessage('-----------------------------++++++++++++++++++++++++++++++');
+end;
 
+function _GetCurrFile(params):integer;
+var
+  oName: string;
+begin
+  if not InputQuery('Name your new outfit', 'Name', oName) then Exit;
+end;
 
 function Initialize: Integer;
 begin
   gCount := 0;
 
-  gFileTo := GetPlugin('Where do you want to create the new outfit?');
-  if not Assigned(gFileTo) then begin
-    Result := -1;
-    Exit;
-  end;
+  if fileName <> '' then
+    gFileTo := FileByName(fileName)
+  else
+    gFileTo := GetPlugin('Where do you want to create the new outfit?');
 
-  gOft := _GetOutfit;
-  if not Assigned(gOft) then begin
-    Result := -1;
-    Exit;
+  if Assigned(gFileTo) then begin
+    _CreateGroup;
+
+    gOft := _GetOutfit;
+    if not Assigned(gOft) then begin
+      Result := -1;
+      Exit;
+    end;
   end;
 end;
 
@@ -82,14 +103,26 @@ function Process(e: IInterface): Integer;
 var
   items, newItem: IInterface;
 begin
+  if not Assigned(gFileTo) then begin
+    gFileTo := GetFile(e);
+    _CreateGroup;
+    gOft := _GetOutfit;
+  end;
+
+  if not Assigned(gOft) then begin
+    Result := -1;
+    Exit;
+  end;
+
   // This record isn't an armor. Try next.
   if Signature(e) <> 'ARMO' then Exit;
 
-  AddMasterIfMissing(
-    gFileTo,
-    GetFileName( GetFile(e) )
-  );
-  CleanMasters(gFileTo);   // Removes self as master.
+  if GetFile(e) <> gFileTo then
+    AddMasterIfMissing(
+      gFileTo,
+      GetFileName( GetFile(e) )
+    );
+  // CleanMasters(gFileTo);   // Removes self as master.
 
   // Add this armor to outfit
   items := ElementByPath(gOft, 'INAM');

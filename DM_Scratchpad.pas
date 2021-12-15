@@ -2,15 +2,19 @@ unit DM_Scratchpad;
 {
     Hotkey: F4
 }
+interface
 
-uses xEditApi, 'DM_RenameUtils\Auto', 'DM_RenameUtils\Globals', DM_SelectPlugin;
+// uses xEditApi, 'DM_RenameUtils\Auto', 'DM_RenameUtils\Globals', DM_SelectPlugin;
+uses xEditApi;
+
+implementation
 
 var
     recCount: Integer;
 
 function Initialize: Integer;
 begin
-    Auto_LoadConfig;
+    // Auto_LoadConfig;
 end;
 
 function KeywordIndex(e: IInterface; edid: string): Integer;
@@ -44,13 +48,29 @@ end;
 procedure AddKeyword(e: IInterface; edid, fileName: string);
 var
     keys: IwbGroupRecord;
-    key: IInterface;
+    key, k: IInterface;
 begin
+    if KeywordIndex(e, edid) <> -1 then Exit;
+
     // Find in Skyrim.esm
     key := MainRecordByEditorID(GroupBySignature(FileByIndex(0), 'KYWD'), edid);
-    if Assigned(key) then
-    // AddMessage(GetElementEditValues(key, 'EDID'));
-        AddElement(ElementByPath(e, 'KWDA'), key);
+    if Assigned(key) then begin
+        k := ElementAssign(ElementByPath(e, 'KWDA'), HighInteger, nil, false);
+        SetEditValue(k, Name(key));
+    end;
+end;
+
+procedure SwapKeyword(e: IInterface; fromKey, toKey: string);
+var
+    idx: Integer;
+    key: IInterface;
+begin
+    idx := KeywordIndex(e, fromKey);
+    if idx <> -1 then begin
+        key := ElementByIndex(ElementByPath(e, 'KWDA'), idx);
+        AddMessage(toKey);
+        SetEditValue(key, toKey);
+    end;
 end;
 
 procedure ProcessFormlist(e: IInterface);
@@ -76,10 +96,16 @@ end;
 
 procedure ConvertToArmorClothes(e: IInterface);
 begin
-    RemoveKeyword(e, 'ArmorHeavy');
-    RemoveKeyword(e, 'ArmorLight');
-    // AddKeyword(e, 'ArmorClothing', 'Skyrim.esm');
+    SwapKeyword(e, 'ArmorHeavy', 'ArmorClothing [KYWD:0006BBE8]');
+    SwapKeyword(e, 'ArmorLight', 'ArmorClothing [KYWD:0006BBE8]');
     ConvertToArmorType(e, 'Clothing');
+end;
+
+procedure ConvertToArmorHeavy(e: IInterface);
+begin
+    SwapKeyword(e, 'ArmorClothing', 'ArmorHeavy [KYWD:0006BBD2]');
+    SwapKeyword(e, 'ArmorLight', 'ArmorHeavy [KYWD:0006BBD2]');
+    ConvertToArmorType(e, 'Heavy Armor');
 end;
 
 procedure RemoveNonPlayable(e: IInterface);
@@ -92,9 +118,35 @@ begin
         AddMessage(GetElementEditValues(e, 'EDID') + ' changed');
         Remove(e);
     end;
-    // AddMessage(original);
-    // AddMessage(override);
-    // AddMessage(GetElementEditValues(e, 'Record Header\Signature'));
+end;
+
+procedure AddEmptyKeyword(e: IInterface);
+var
+    i: Integer;
+    n: string;
+    l: TStringList;
+begin
+    l := TStringList.Create;
+    try
+        l.Add('underwear');
+        l.Add('skirt');
+        l.Add('shorts');
+        l.Add('shoes');
+        l.Add('panti');
+        l.Add('dress');
+        l.Add('corset');
+        l.Add('boot');
+        n := GetElementEditValues(e, 'FULL');
+        for i := 0 to l.Count - 1 do begin
+            if ContainsText(n, l[i]) then begin
+                ElementAssign(ElementByPath(e, 'KWDA'), HighInteger, nil, false);   // Empty keyword
+                Exit;
+            end;
+        end;
+    finally
+        l.Free;
+    end;
+
 end;
 
 function Process(e: IInterface): Integer;
@@ -110,6 +162,9 @@ const
     fitness = 'Fat';
 begin
     Inc(recCount);
+    AddMessage(GetElementEditValues(e, 'FULL'));
+    AddMessage(GetElementEditValues(e, 'DOFT'));
+    AddMessage('=====================');
     // AddMessage(IntToStr(recCount));
     // =====================================
     // Rename Maxick textures
@@ -132,6 +187,12 @@ begin
     // end;
 
     // ConvertToArmorClothes(e);
+    // ConvertToArmorHeavy(e);
+    AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');
+    Add(e, 'EITM', true);
+    AddEmptyKeyword(e);
+
+    // InsertElement(ElementByPath(e, 'KWDA'), 0, nil);
 
     // AddMessage(GetElementEditValues(e, 'BOD2\Armor Type'));
 
@@ -160,12 +221,12 @@ begin
 
     // AddMessage();
     // AddMessage(GetAutoName(e));
-    RemoveNonPlayable(e);
+    // RemoveNonPlayable(e);
 end;
 
 function Finalize: Integer;
 begin
-    Auto_UnloadConfig;
+    // Auto_UnloadConfig;
 end;
 
 end.
