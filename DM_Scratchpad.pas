@@ -154,7 +154,7 @@ var
     v: variant;
 //     s: TStringList;
     s, s2, basePath: string;
-    isUnique: IInterface;
+    isUnique, o: IInterface;
     i: Integer;
 const
     race = 'Arg';
@@ -162,9 +162,10 @@ const
     fitness = 'Fat';
 begin
     Inc(recCount);
-    AddMessage(GetElementEditValues(e, 'FULL'));
-    AddMessage(GetElementEditValues(e, 'DOFT'));
-    AddMessage('=====================');
+
+    o := WinningOverride(e);
+    if GetFileName(GetFile(o)) = 'Bashed Patch, 0.esp' then
+    Remove(o);
     // AddMessage(IntToStr(recCount));
     // =====================================
     // Rename Maxick textures
@@ -188,9 +189,9 @@ begin
 
     // ConvertToArmorClothes(e);
     // ConvertToArmorHeavy(e);
-    AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');
-    Add(e, 'EITM', true);
-    AddEmptyKeyword(e);
+    // AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');
+    // Add(e, 'EITM', true);
+    // AddEmptyKeyword(e);
 
     // InsertElement(ElementByPath(e, 'KWDA'), 0, nil);
 

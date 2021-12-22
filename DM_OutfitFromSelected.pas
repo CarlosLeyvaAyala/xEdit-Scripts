@@ -1,12 +1,15 @@
 unit DM_OutfitFromSelected;
+
 {
     Hotkey: Shift+F4
 }
 
-uses xEditApi, DM_SelectPlugin, 'lib\mteFiles';
+uses 
+  xEditApi, DM_SelectPlugin, 'lib\mteFiles';
 
 const
   fileName = 'DM Unique Outfits.esp';
+  // fileName = '';
 
 var
   gFileTo, gOft: IInterface;
@@ -20,11 +23,13 @@ const
   eSleepOftNotFound = 'How did you manage to delete DefaultSleepOutfit [OTFT:0001697D] from Skyrim.esm? I need it as a template to create a new outfit.';
   eCantCreate = 'I couldn''t create a new outfit for some unknown reason. Please, manually create a new one by copying any existng OTFT record to %s.';
 begin
+  AddMessage('Copying outfit from template');
   // Copy DefaultSleepOutfit [OTFT:0001697D] from Skyrim.esm.
-  base := RecordByFormID(FileByIndex(0), $0001697D, True);
+  base := RecordByFormID(FileByIndex(0), $1697D, true);
   if not Assigned(base) then raise Exception.Create(eSleepOftNotFound);
-  Result := wbCopyElementToFile(base, gFileTo, True, True);
-  if not Assigned(Result) then raise Exception.Create(Format(eCantCreate, [GetFileName(gFileTo)]));
+
+  Result := wbCopyElementToFile(base, gFileTo, true, false);
+  Add(Result, 'INAM', true);
 
   // Clean copied template
   SetElementEditValues(Result, 'EDID', aOName);
@@ -69,7 +74,6 @@ begin
   // Make sure OTFT exists
   OTFT := GroupBySignature(FileByLoadOrder(0), 'OTFT');
   wbCopyElementToFile(OTFT, gFileTo, true, false);
-  // if not HasGroup(GetFile(gFileTo), 'OTFT') then AddMessage('-----------------------------++++++++++++++++++++++++++++++');
 end;
 
 function _GetCurrFile(params):integer;
@@ -83,10 +87,18 @@ function Initialize: Integer;
 begin
   gCount := 0;
 
-  if fileName <> '' then
-    gFileTo := FileByName(fileName)
-  else
+  if fileName = '' then begin
     gFileTo := GetPlugin('Where do you want to create the new outfit?');
+  end
+  else begin
+    gFileTo := FileByName(fileName);
+    if(not Assigned(gFileTo)) then begin
+      AddMessage('File ' + fileName + ' couldn''t be found');
+      Result := -1;
+      Exit;
+    end
+    AddMessage('Adding outfit to ' + GetFileName(gFileTo));
+  end;
 
   if Assigned(gFileTo) then begin
     _CreateGroup;
@@ -136,7 +148,7 @@ begin
   if gCount = 0 then
     AddMessage('No armors added to outfit. Did you select valid armors when running this script?')
   else begin
-    _CleanTemplatePijamas;
+    // _CleanTemplatePijamas;
     AddMessage(
       Format(
         '%d records added to %s in %s',
