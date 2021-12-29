@@ -163,9 +163,10 @@ const
 begin
     Inc(recCount);
 
-    o := WinningOverride(e);
-    if GetFileName(GetFile(o)) = 'Bashed Patch, 0.esp' then
-    Remove(o);
+    // o := WinningOverride(e);
+    // if GetFileName(GetFile(o)) = 'Bashed Patch, 0.esp' then
+    // Remove(o);
+
     // AddMessage(IntToStr(recCount));
     // =====================================
     // Rename Maxick textures
@@ -187,11 +188,16 @@ begin
     //     ProcessFormlist(e)
     // end;
 
+    // ============================================================
+    // SetElementNativeValues(e, 'DATA\Weight', 5);
+    // AddMessage({GetElementEditValues(e, 'FULL') + ' ' + }GetElementEditValues(e, 'DATA\Weight'));
+
     // ConvertToArmorClothes(e);
-    // ConvertToArmorHeavy(e);
-    // AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');
-    // Add(e, 'EITM', true);
-    // AddEmptyKeyword(e);
+    ConvertToArmorHeavy(e);
+    AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');
+    Add(e, 'EITM', true);
+    AddEmptyKeyword(e);
+    // ============================================================
 
     // InsertElement(ElementByPath(e, 'KWDA'), 0, nil);
 
