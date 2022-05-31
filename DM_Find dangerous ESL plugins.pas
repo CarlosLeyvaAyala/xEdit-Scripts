@@ -58,7 +58,7 @@ begin
     HasTooManyRecords:
       msg := '***ERROR***: Plugin has too many records and can''t ever be turned into an ESL.' + corruption;
     HasIdOverflow:
-      msg := '***ERROR***: Plugin has a record out of bounds. Contact the author so they can remove the ESL flag, compact FormIDs and then turn on the ESL flag again.' + corruption;
+      msg := '***ERROR***: Plugin has a record with a FormID out of bounds. Contact the author so they can remove the ESL flag, compact FormIDs and then turn on the ESL flag again.' + corruption;
     else 
       msg := '';
   end;
