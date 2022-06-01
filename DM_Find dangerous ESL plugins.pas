@@ -8,9 +8,11 @@ const
   iESLMaxFormID = $fff;   // max allowed FormID number in ESL
 
   AnalysisSuccess = 0;
-  HasCell = 1;
   HasTooManyRecords = 2;
   HasIdOverflow = 3;
+
+var 
+  HasErrors: Boolean;
 
 function CheckRecords(f: IInterface): Integer;
 var
@@ -25,11 +27,6 @@ begin
     
     // override doesn't affect ESL
     if not IsMaster(e) then Continue;
-    
-    if Signature(e) = 'CELL' then begin
-      Result := HasCell;
-      Exit;
-    end;
     
     Inc(RecCount);    
     if RecCount > iESLMaxRecords then begin
@@ -52,9 +49,9 @@ var
 const 
   corruption = ' If you continue to use this plugin, it will surely lead to CTDs.';
 begin
+  HasErrors := (RecordAnalysis <> AnalysisSuccess) or HasErrors;
+
   case RecordAnalysis of
-    HasCell: 
-      msg := 'Warning: Plugin has new CELL(s) which won''t work when turned into ESL and overridden by other mods due to the game bug';
     HasTooManyRecords:
       msg := '***ERROR***: Plugin has too many records and can''t ever be turned into an ESL.' + corruption;
     HasIdOverflow:
@@ -83,10 +80,16 @@ var
   i: integer;
   f: IInterface;
 begin
+  HasErrors := false;
+
   // iterate over loaded plugins
   for i := 0 to Pred(FileCount) do begin
     f := FileByIndex(i);
     if (IsESL(f)) then CheckForESL(f);
+  end;
+
+  if not HasErrors then begin
+    AddMessage('No dangerous ESL plugins were found.');
   end;
 end;
 
