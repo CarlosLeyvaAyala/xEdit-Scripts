@@ -11,10 +11,21 @@ implementation
 
 var
     recCount: Integer;
+    output: TStringList;
 
 function Initialize: Integer;
+var 
+  i: integer;
+  f: IInterface;
 begin
-    // Auto_LoadConfig;
+  output := TStringList.Create;
+  // iterate over loaded plugins
+  // for i := 0 to Pred(FileCount) do begin
+  //   f := FileByIndex(i);
+  //   if HasHeavyArmor(f) then begin
+  //     AddMessage(IntToHex(GetLoadOrder(f), 2) + ' ' + GetFileName(f));
+  //   end;
+  // end;
 end;
 
 function KeywordIndex(e: IInterface; edid: string): Integer;
@@ -112,12 +123,12 @@ procedure RemoveNonPlayable(e: IInterface);
 var
     original, override: variant;
 begin
-    original := GetElementEditValues(Master(e), 'Record Header\Record Flags\Non-Playable');
-    override := GetElementEditValues(HighestOverrideOrSelf(e, $FFFF), 'Record Header\Record Flags\Non-Playable');
-    if original = 1 and override = 0 then begin
-        AddMessage(GetElementEditValues(e, 'EDID') + ' changed');
-        Remove(e);
-    end;
+  original := GetElementEditValues(Master(e), 'Record Header\Record Flags\Non-Playable');
+  override := GetElementEditValues(HighestOverrideOrSelf(e, $FFFF), 'Record Header\Record Flags\Non-Playable');
+  if original = 1 and override = 0 then begin
+    AddMessage(GetElementEditValues(e, 'EDID') + ' changed');
+    Remove(e);
+  end;
 end;
 
 procedure AddEmptyKeyword(e: IInterface);
@@ -133,6 +144,8 @@ begin
         l.Add('shorts');
         l.Add('shoes');
         l.Add('panti');
+        l.Add('panty');
+        l.Add('top');
         l.Add('dress');
         l.Add('corset');
         l.Add('boot');
@@ -149,6 +162,16 @@ begin
 
 end;
 
+procedure ExportArmorInfo(e: IInterface);
+var 
+    edid, full, esp: string;
+begin
+    edid := GetElementEditValues(e, 'EDID');
+    full := GetElementEditValues(e, 'FULL');
+    esp := GetFileName(GetFile(Master(e)));
+    AddMessage(Format('%s|%s|%s', [full, edid, esp]));
+end;
+
 function Process(e: IInterface): Integer;
 var
     v: variant;
@@ -161,7 +184,13 @@ const
     sex = 'Man';
     fitness = 'Fat';
 begin
-    Inc(recCount);
+    // Inc(recCount);
+    // ExportArmorInfo(e);
+    // AddMessage(IntToHex(FormID(e), 2));
+
+    // If not GetElementNativeValues(e, 'ACBS\Flags\Female') then
+        // AddMessage(FloatToStr(RandomRange(90, 96) / 100.0))
+        // SetElementEditValues(e, 'NAM6', RandomRange(94, 97) / 100.0)
 
     // o := WinningOverride(e);
     // if GetFileName(GetFile(o)) = 'Bashed Patch, 0.esp' then
@@ -193,10 +222,10 @@ begin
     // AddMessage({GetElementEditValues(e, 'FULL') + ' ' + }GetElementEditValues(e, 'DATA\Weight'));
 
     // ConvertToArmorClothes(e);
-    ConvertToArmorHeavy(e);
-    AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');
-    Add(e, 'EITM', true);
-    AddEmptyKeyword(e);
+    // ConvertToArmorHeavy(e);
+    // AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');
+    // Add(e, 'EITM', true);
+    // AddEmptyKeyword(e);
     // ============================================================
 
     // InsertElement(ElementByPath(e, 'KWDA'), 0, nil);
@@ -232,8 +261,13 @@ begin
 end;
 
 function Finalize: Integer;
+var
+  i: Integer;
 begin
-    // Auto_UnloadConfig;
+  // AddMessage(output.commaText);
+  // for i := 0 to output.Count - 1 do
+  //   AddMessage(output[i]);
+  output.Free;
 end;
 
 end.
