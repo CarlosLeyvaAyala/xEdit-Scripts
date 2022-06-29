@@ -119,6 +119,13 @@ begin
     ConvertToArmorType(e, 'Heavy Armor');
 end;
 
+procedure ConvertToArmorLight(e: IInterface);
+begin
+    SwapKeyword(e, 'ArmorClothing', 'ArmorLight [KYWD:0006BBD3]');
+    SwapKeyword(e, 'ArmorHeavy', 'ArmorLight [KYWD:0006BBD3]');
+    ConvertToArmorType(e, 'Light Armor');
+end;
+
 procedure RemoveNonPlayable(e: IInterface);
 var
     original, override: variant;
@@ -179,6 +186,7 @@ var
     s, s2, basePath: string;
     isUnique, o: IInterface;
     i: Integer;
+    r: Real;
 const
     race = 'Arg';
     sex = 'Man';
@@ -187,10 +195,16 @@ begin
     // Inc(recCount);
     // ExportArmorInfo(e);
     // AddMessage(IntToHex(FormID(e), 2));
+    if GetElementNativeValues(e, 'DATA\Float') = 70 then
+    AddMessage(GetElementEditValues(e, 'EDID'));
 
-    // If not GetElementNativeValues(e, 'ACBS\Flags\Female') then
-        // AddMessage(FloatToStr(RandomRange(90, 96) / 100.0))
-        // SetElementEditValues(e, 'NAM6', RandomRange(94, 97) / 100.0)
+    // If GetElementNativeValues(e, 'ACBS\Flags\Female') then begin
+    //   // SetElementEditValues(e, 'NAM6', RandomRange(92, 96) / 100.0);
+    //   // r := GetElementNativeValues(e, 'NAM6');
+    //   // SetElementNativeValues(WinningOverride(e),'NAM6', r);
+    //   RemoveElement(e, ElementBySignature(e, 'WNAM')) ;
+    //   RemoveElement(WinningOverride(e), ElementBySignature(WinningOverride(e), 'WNAM')) ;
+    // end;
 
     // o := WinningOverride(e);
     // if GetFileName(GetFile(o)) = 'Bashed Patch, 0.esp' then
@@ -222,6 +236,7 @@ begin
     // AddMessage({GetElementEditValues(e, 'FULL') + ' ' + }GetElementEditValues(e, 'DATA\Weight'));
 
     // ConvertToArmorClothes(e);
+    // ConvertToArmorLight(e);
     // ConvertToArmorHeavy(e);
     // AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');
     // Add(e, 'EITM', true);
