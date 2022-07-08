@@ -4,6 +4,12 @@
 unit FindDangerousESL;
 
 const
+  // Change to <false> to display only errors.
+  displayNoErrorsFound = true;
+
+  // ************************************************
+  // * Don't edit values below here
+  // ************************************************
   iESLMaxRecords = $800;  // max possible new records in ESL
 
   AnalysisSuccess = 0;
@@ -46,6 +52,14 @@ begin
   end;
 end;
 
+procedure AddSeparator;
+const
+  sep = '**********************************************';
+begin
+  if displayNoErrorsFound then AddMessage(sep)
+  else AddMessage(' ');
+end;
+
 procedure DisplayAnalysisMessage(espName: string; RecordAnalysis: Integer);
 var
   msg: string;
@@ -56,16 +70,16 @@ const
   successFmt = '%s has no errors.';
   errorsFmt = '%s has errors:';
   errorFmt = '    %s';
-  sep = '**********************************************';
 begin
   if RecordAnalysis = AnalysisSuccess then begin
-    AddMessage(Format(successFmt, [espName]));
+    if displayNoErrorsFound then 
+      AddMessage(Format(successFmt, [espName]));
     Exit;
   end;
 
   ctdFriendly := false;
 
-  AddMessage(sep);
+  AddSeparator;
   AddMessage(Format(errorsFmt, [espName]));
 
   for i := 0 to errors.Count - 1 do begin
@@ -79,7 +93,7 @@ begin
 
   if ctdFriendly then AddMessage(corruption);
 
-  AddMessage(sep);
+  AddSeparator;
 end;
 
 procedure CheckForESL(f: IInterface);
