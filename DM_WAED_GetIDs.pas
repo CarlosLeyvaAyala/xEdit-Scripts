@@ -1,22 +1,12 @@
 unit DM_EC_GetIDs;
 {
-    Hotkey: Ctrl+Shift+F5
-	
-	****************************************************
-	*** THIS IS AN SSEDIT SCRIPT, NOT A DELPHI FILE! ***
-	****************************************************
-	
-	Gets a list of NPCs in a format usable for Max Sick
-	Gains NPC database. 
-	Outputs an *.sql file to "SSEdit\Edit Scripts\".
-	
-	Change the hotkey to your preference.
+  Hotkey: Ctrl+Shift+F5
 }
 
 uses xEditApi, SysUtils, StrUtils;
 
 var
-  output: TStringList;
+  output, output2: TStringList;
 
 const 
   enchFmt = 
@@ -28,8 +18,8 @@ const
 '    "newItemName": "%s",'#13#10
 '    "itemName": "%s",'#13#10
 '    "itemId": "%s",'#13#10 +
-'    "enchantName": "",'#13#10
-'    "enchantId": ""'#13#10
+'    "enchantName": "%s",'#13#10
+'    "enchantId": "%s"'#13#10
 '  },';
 
 function IsESL(f: IInterface): Boolean;
@@ -55,22 +45,36 @@ begin
   ]);
 end;
 
+function GetId(e: IInterface): string;
+begin
+  Result := '';
+  if Assigned(e) then 
+    Result := RecordToStr(MasterOrSelf(e));
+end;
+
+function GetName(e: IInterface): string;
+begin
+  Result := '';
+  if Assigned(e) then 
+    Result := GetElementEditValues(e, 'FULL');    
+end;
+
 function GetWeaponArmor(e: IInterface): string;
 var
-  id, rName: string;
+  rName: string;
+  ench: Variant;
 begin
-  id := RecordToStr(MasterOrSelf(e));
-  rName := GetElementEditValues(e, 'FULL');
-  Result := Format(fullFmt, [rName, rName, id]);
+  ench := LinksTo(ElementByPath(e, 'EITM'));
+  rName := GetName(e);
+  Result := Format(fullFmt, [rName, rName, GetId(e), GetName(ench), GetId(ench)]);
+  
+  if Assigned(ench) then
+    output2.Add(GetEnchant(ench));
 end;
 
 function GetEnchant(e: IInterface): string;
-var
-  id, rName: string;
 begin
-  id := RecordToStr(MasterOrSelf(e));
-  rName := GetElementEditValues(e, 'FULL');
-  Result := Format(enchFmt, [rName, id]);
+  Result := Format(enchFmt, [GetName(e), GetId(e)]);
 end;
 
 function Process(e: IInterface): Integer;
@@ -94,18 +98,30 @@ begin
   if RightStr(s, 1) = ',' then Result := LeftStr(s, l);
 end;
 
-function Initialize: Integer;
-begin
-  output := TStringList.Create;
-end;
-
-function Finalize: Integer;
+procedure PrintOutput(l: TStringList);
 var
   s: string;
 begin
-  s := DeleteLastComma(TrimRight(output.Text));
+  s := DeleteLastComma(TrimRight(l.Text));
   AddMessage(s);
+end;
+
+function Initialize: Integer;
+begin
+  output := TStringList.Create;
+  output2 := TStringList.Create;
+end;
+
+function Finalize: Integer;
+begin
+  PrintOutput(output);
+  if output2.Text <> '' then begin
+    AddMessage(#13#10#13#10);
+    PrintOutput(output2);
+  end;
+
   output.Free;
+  output2.Free;
 end;
 
 end.
