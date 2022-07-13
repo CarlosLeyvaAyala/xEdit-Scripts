@@ -89,6 +89,8 @@ const
   ptOverride = 1400;
   ptFromEdid = 1500;
   ptDiagnose = 1600;
+  ptList = 1700;
+  ptRegex = 1800;
 
   pt = 00;
 
@@ -144,7 +146,7 @@ begin
     aux1 := 'a single weapon/armor tag';
 
   case gProcessingType of
-    ptReplace: s := Format('Replacing "%s" with "%s"', [gsFrom, gsTo]);
+    ptReplace, ptRegex: s := Format('Replacing "%s" with "%s"', [gsFrom, gsTo]);
     ptAppend: s := Format('Adding "%s" at the end of the names.', [gsFrom]);
     ptPrepend: s := Format('Adding "%s" at the start of the names.', [gsFrom]);
     ptPrependIf: s := Format('Adding "%s" at the start of the names if they contain "%s"', [gsFrom, gsTo]); //'Adding "' + gsFrom + '" at the start of the names if they contain "' + gsTo + '".';
@@ -158,11 +160,12 @@ begin
     ptAuto: s := 'Auto mode selected.' + nl + 
       'Remember it will never be 100% perfect because of the way some records are setup and your own defined formats' + nl + 
       '(not this script''s fault, really), but it should be at least 95% reliable.';
-    ptGetType: s :=  Format('Getting %s.', [aux1]);
-    ptRestore: s :=  'Restoring names from master esp file.';
-    ptOverride: s :=  'Writing names to overriding esp plugins.';
-    ptFromEdid: s :=  'Getting names from Editor ID (EDID).';
-    ptDiagnose: s :=  'Diagnosing potential problems.';
+    ptGetType: s := Format('Getting %s.', [aux1]);
+    ptRestore: s := 'Restoring names from master esp file.';
+    ptOverride: s := 'Writing names to overriding esp plugins.';
+    ptFromEdid: s := 'Getting names from Editor ID (EDID).';
+    ptDiagnose: s := 'Diagnosing potential problems.';
+    ptList: s := 'Listing record names.' + nl + 'This mode can be useful for testing your regex at https://regexr.com/';
   else
     s := eNoProcessToLog;
   end;
@@ -215,6 +218,11 @@ begin
   // PDiagnose(ANewName);
 end;
 
+procedure PList(AItemName: string);
+begin
+  AddMessage(AItemName);
+end;
+
 // Trims leading and trailing blanks from a name.
 procedure PTrimAll(AOldItemName: string);
 var
@@ -249,6 +257,24 @@ var
 begin
   if not ContainsStr(AOldItemName, AFrom) then Exit;
   r := StringReplace(AOldItemName, AFrom, ATo, [rfReplaceAll]);
+  PCommit(AOldItemName, r);
+end;
+
+procedure PRegex(AOldItemName, AFrom, ATo: string);
+var
+  r: string;
+  rx: TPerlRegex;
+begin
+  rx := TPerlRegex.Create;
+  try
+    rx.RegEx := AFrom;
+    rx.Subject := AOldItemName;
+    rx.Replacement := ATo;
+    rx.ReplaceAll;
+    r := rx.Subject;
+  finally
+    rx.Free;
+  end;  
   PCommit(AOldItemName, r);
 end;
 
@@ -561,9 +587,11 @@ begin
 
   case gProcessingType of
     ptReplace: PReplace(currentName, gsFrom, gsTo);
+    ptRegex: PRegex(currentName, gsFrom, gsTo);
     ptPrepend: PPrepend(currentName, gsFrom);
     ptPrependIf: PPrependIf(currentName, gsFrom, gsTo);
     ptAppend: PAppend(currentName, gsFrom);
+    ptList: PList(currentName);
 
     ptMoveToFront: PMoveToFront(currentName, gsFrom);
     ptMoveToTail: PMoveToTail(currentName, gsFrom);

@@ -72,6 +72,15 @@ begin
       _ContinueProcessing(ptReplace);
 end;
 
+procedure OnBtnRegexClick(Sender: TObject);
+const
+  p = 'Use regular expression';
+begin
+  if _SetGsFrom(p, 'From: ') then
+    if _SetGsTo(p, 'To: ') then
+      _ContinueProcessing(ptRegex);
+end;
+
 procedure OnBtnPrependIfClick(Sender: TObject);
 const
   p = 'Prepend word if';
@@ -111,6 +120,11 @@ procedure OnBtnFileImportClick(Sender: TObject);
 begin
   if _SetGsFrom('Import from file', 'File name (without extension): ') then
     _ContinueProcessing(ptFileImport);
+end;
+
+procedure OnBtnListClick;
+begin
+  _ContinueProcessing(ptList);
 end;
 
 procedure OnBtnTrimFrontClick;
@@ -172,7 +186,6 @@ procedure OnChkGetAllArmoTypeClick(Sender: TObject);
 begin
   gGetAllArmoType := TCheckBox(Sender).Checked;
 end;
-
 
 function CreateButton(AParent: TControl): TButton;
 begin
@@ -254,7 +267,8 @@ function ShowForm: Integer;
 var
   btnExit, btnReplace, btnMoveFront, btnMoveTail, btnAppend, btnPrepend,
   btnPrependIf, btnTrimFront, btnTrimAll, btnTrimTail, btnGetType, btnDiagnose,
-  btnFExport, btnFImport, btnAuto, btnRestore, btnOverride, btnFromEdid: TButton;
+  btnFExport, btnFImport, btnAuto, btnRestore, btnOverride, btnFromEdid,
+  btnList, btnRegex: TButton;
   grpMove, grpTrim, grpFile, grpSemi: TGroupBox;
   chkDebug, chkExtDebugInfo, chkGetAllArmoType: TCheckBox;
 const
@@ -291,10 +305,15 @@ begin
     _Below(btnReplace, btnAuto);
     _MoveBy(btnReplace, 0, bigDY);
 
+    btnRegex := CreateButton(frm);
+    btnRegex.Caption := 'Rege&x';
+    btnRegex.Hint := 'Replaces a string using a regular expression';
+    _Below(btnRegex, btnReplace);
+
     btnPrepend := CreateButton(frm);
     btnPrepend.Caption := '&Prepend';
     btnPrepend.Hint := 'Adds some word at the start of the name';
-    _Below(btnPrepend, btnReplace);
+    _Below(btnPrepend, btnRegex);
 
     btnPrependIf := CreateButton(frm);
     btnPrependIf.Caption := 'Prepend &if...';
@@ -306,10 +325,15 @@ begin
     btnAppend.Hint := 'Adds some word at the end of the name';
     _Below(btnAppend, btnPrependIf);
 
+    btnList := CreateButton(frm);
+    btnList.Caption := 'List';
+    btnList.Hint := 'Lists current selected names';
+    _Below(btnList, btnAppend);
+
     btnDiagnose := CreateButton(frm);
     btnDiagnose.Caption := 'Diagnose';
     btnDiagnose.Hint := 'Tries to find potential problems with names in selected records.';
-    _Below(btnDiagnose, btnAppend);
+    _Below(btnDiagnose, btnList);
     _MoveBy(btnDiagnose, 0, bigDY);
 
     /////////////////////////////////////////
@@ -442,6 +466,8 @@ begin
     btnOverride.OnClick := OnBtnOverrideClick;
     btnFromEdid.OnClick := OnBtnFromEdidClick;
     btnDiagnose.OnClick := OnBtnDiagnoseClick;
+    btnList.OnClick := OnBtnListClick;
+    btnRegex.OnClick := OnBtnRegexClick;
     chkDebug.OnClick := OnChkDebugClick;
     chkExtDebugInfo.OnClick := OnChkExtDebugInfoClick;
     chkGetAllArmoType.OnClick := OnChkGetAllArmoTypeClick;
