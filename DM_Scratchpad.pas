@@ -28,6 +28,36 @@ begin
   // end;
 end;
 
+function IsESL(f: IInterface): Boolean;
+begin
+  Result := GetElementEditValues(ElementByIndex(f, 0), 'Record Header\Record Flags\ESL') = 1;
+end;
+  
+function ActualFixedFormId(e: IInterface; toLower, padZeros, padXs: Boolean): string;
+var
+  fID, ffID: Cardinal;
+  num0: Integer;
+  xx: string;
+begin
+  
+  fID := FormID(e);
+  if(IsESL(GetFile(e))) then begin
+    ffID := fID and $FFF;
+    xx := 'xxxxx';
+    num0 := 3;
+  end
+  else begin
+    ffID := fID and $FFFFFF; 
+    xx := 'xx';
+    num0 := 6;
+  end;
+
+  if not padZeros then num0 := 1;
+  if not padXs then xx := '';
+
+  Result := Lowercase(xx + IntToHex(ffID, num0));
+end;
+
 function KeywordIndex(e: IInterface; edid: string): Integer;
 var
   kwda: IInterface;
@@ -179,6 +209,43 @@ begin
     AddMessage(Format('%s|%s|%s', [full, edid, esp]));
 end;
 
+// Separates a string by capitals.  
+// Example:
+//  'BDO BMSNecklaceBlack' => 'BDO BMS Necklace Black' 
+function SeparateCapitals(aStr: string): string;
+var
+  r: TPerlRegex;
+begin
+  r := TPerlRegex.Create;
+  try
+    r.RegEx := '((?<=[a-z])[A-Z]|[A-Z](?=[a-z]))';
+    r.Subject := aStr;
+    r.Replacement := ' \1';
+    r.ReplaceAll;
+    Result := Trim(r.Subject);
+  finally
+    r.Free;
+  end;
+end;
+
+procedure MakeIsLocation(e: IInterface);
+var
+  f, k, s, c: string;
+const 
+  kFmt = 'Keyword.from(Game.getFormFromFile(0x%s, "Skyrim.esm"))';
+  fFmt = 'export const is%s = (l: Location) => l.hasKeyword(%s)';
+  cFmt = '/** Checks if a location is of type "%s". */';
+begin
+  k := Format(kFmt, [ActualFixedFormId(e)]);
+  s := StringReplace(EditorID(e), 'LocType', '', [rfReplaceAll]);
+  s := StringReplace(EditorID(e), 'LocSet', 'Set', [rfReplaceAll]);
+  f := Format(fFmt, [s, k]);
+  c := Format(cFmt, [Lowercase(SeparateCapitals(s))]);
+  AddMessage(c);
+  AddMessage(f);
+  AddMessage(' ')
+end;
+
 function Process(e: IInterface): Integer;
 var
     v: variant;
@@ -192,11 +259,15 @@ const
     sex = 'Man';
     fitness = 'Fat';
 begin
+  // Add(e, 'Armature', false);
+  // MakeIsLocation(e);
+  AddMessage(ActualFixedFormId(e, false, true, true));
+  // AddMessage('player.removeitem 6f0' + ActualFixedFormId(e) + ' 1');
     // Inc(recCount);
     // ExportArmorInfo(e);
     // AddMessage(IntToHex(FormID(e), 2));
-    if GetElementNativeValues(e, 'DATA\Float') = 70 then
-    AddMessage(GetElementEditValues(e, 'EDID'));
+    // if GetElementNativeValues(e, 'DATA\Float') = 70 then
+    // AddMessage(GetElementEditValues(e, 'EDID'));
 
     // If GetElementNativeValues(e, 'ACBS\Flags\Female') then begin
     //   // SetElementEditValues(e, 'NAM6', RandomRange(92, 96) / 100.0);
