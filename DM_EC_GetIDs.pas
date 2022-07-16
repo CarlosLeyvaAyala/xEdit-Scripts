@@ -1,15 +1,9 @@
 unit DM_EC_GetIDs;
 {
-    Hotkey: Ctrl+F5
+  Hotkey: Ctrl+F5
 	
-	****************************************************
-	*** THIS IS AN SSEDIT SCRIPT, NOT A DELPHI FILE! ***
-	****************************************************
-	
-	Gets a list of NPCs in a format usable for Max Sick
-	Gains NPC database. 
-	Outputs an *.sql file to "SSEdit\Edit Scripts\".
-	
+  Gets FormID in the format used by Easy Containers.
+  
 	Change the hotkey to your preference.
 }
 

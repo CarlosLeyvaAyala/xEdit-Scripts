@@ -55,7 +55,8 @@ begin
   if not padZeros then num0 := 1;
   if not padXs then xx := '';
 
-  Result := Lowercase(xx + IntToHex(ffID, num0));
+  Result := xx + IntToHex(ffID, num0);
+  if toLower then Result := Lowercase(Result);
 end;
 
 function KeywordIndex(e: IInterface; edid: string): Integer;

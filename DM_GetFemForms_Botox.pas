@@ -1,6 +1,6 @@
 unit DM_GetFemForms_Botox;
 {
-Hotkey: F6
+Hotkey: Ctrl+F6
 }
 
 interface
