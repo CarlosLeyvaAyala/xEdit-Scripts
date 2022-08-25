@@ -1,7 +1,7 @@
 unit DM_RemoveCustomBodies;
 {
     This script removes records
-    Hotkey: F8
+    Hotkey: F18
 }
 interface
 uses xEditApi;

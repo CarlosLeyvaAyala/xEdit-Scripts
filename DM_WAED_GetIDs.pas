@@ -72,9 +72,44 @@ begin
     output2.Add(GetEnchant(ench));
 end;
 
-function GetEnchant(e: IInterface): string;
+function GetEnchantMagnitude(e: IInterface): string;
+var 
+  i, n: Integer;
+  fxs, fx, ench: IInterface;
+  mag: Real;
+  mags: TStringList;
+  eName: string;
+const
+  fmt = '%s (%g)';
 begin
-  Result := Format(enchFmt, [GetName(e), GetId(e)]);
+  mags := TStringList.Create;
+
+  try    
+    fxs := ElementByPath(e, 'Effects');
+    n := ElementCount(fxs);
+    for i := 0 to n - 1 do begin
+      fx := ElementByIndex(fxs, i);
+      ench := LinksTo(ElementByPath(fx, 'EFID'));
+      eName := GetElementEditValues(ench, 'FULL');
+      mag := GetElementNativeValues(fx, 'EFIT\Magnitude');
+      mags.Add(Format(fmt, [eName, mag]));
+    end;
+    Result := StringReplace(mags.CommaText, ',', ', ', [rfReplaceAll]);
+    Result := StringReplace(Result, '"', '', [rfReplaceAll]);
+  finally
+    mags.Free;    
+  end;
+end;
+
+function GetEnchant(e: IInterface): string;
+const 
+  nameFmt = '%s (%s)';
+var
+  nm: string;
+begin
+  nm := GetEnchantMagnitude(e);
+  // nm := Format(nameFmt, [GetName(e), GetEnchantMagnitude(e)]);
+  Result := Format(enchFmt, [nm, GetId(e)]);
 end;
 
 function Process(e: IInterface): Integer;

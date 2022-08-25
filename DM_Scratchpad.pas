@@ -260,9 +260,10 @@ const
     sex = 'Man';
     fitness = 'Fat';
 begin
+  SetElementEditValues(e, 'Magic Effect Data\DATA\Hit Shader', 'MuffleFXShader [EFSH:000BCF25]');
   // Add(e, 'Armature', false);
   // MakeIsLocation(e);
-  AddMessage(ActualFixedFormId(e, false, true, true));
+  // AddMessage(ActualFixedFormId(e, false, true, true));
   // AddMessage('player.removeitem 6f0' + ActualFixedFormId(e) + ' 1');
     // Inc(recCount);
     // ExportArmorInfo(e);
@@ -307,7 +308,7 @@ begin
     // SetElementNativeValues(e, 'DATA\Weight', 5);
     // AddMessage({GetElementEditValues(e, 'FULL') + ' ' + }GetElementEditValues(e, 'DATA\Weight'));
 
-    // ConvertToArmorClothes(e);
+    ConvertToArmorClothes(e);
     // ConvertToArmorLight(e);
     // ConvertToArmorHeavy(e);
     // AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');
