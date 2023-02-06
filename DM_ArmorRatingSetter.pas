@@ -20,6 +20,7 @@ var
   nHead, nHands, nLegs, nBody: Byte;
 
 const
+  desiredAR = 130;
   // Made to deal with strange InputQuery behavior
   cancelStr = '***ThIsF0rMw4SCaNcEL1eD!!111***'; 
 
@@ -251,7 +252,7 @@ var
 begin
   // s := PromptQuery('Set Armor Rating', 'Expected **total** AR');
   // totalAR := StrToInt(s);
-  totalAR := 76;
+  totalAR := desiredAR;
 
   if totalAR < 0 then begin
     AddMessage('Only positive values are allowed.');

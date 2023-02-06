@@ -8,12 +8,14 @@ uses xEditApi, SysUtils, StrUtils;
 var
   output, output2: TStringList;
 
-const 
-  enchFmt = 
+const
+  enchFmt =
+'  "%s": {'#13#10
 '    "enchantName": "%s",'#13#10
-'    "enchantId": "%s"'#13#10;
+'    "enchantId": "%s"'#13#10
+'  },';
 
-  fullFmt = 
+  fullFmt =
 '  {'#13#10
 '    "newItemName": "%s",'#13#10
 '    "itemName": "%s",'#13#10
@@ -33,7 +35,7 @@ var
 begin
   fID := FormID(e);
   if(IsESL(GetFile(e))) then ffID := fID and $FFF
-  else ffID := fID and $FFFFFF; 
+  else ffID := fID and $FFFFFF;
   Result := Lowercase(IntToHex(ffID, 1));
 end;
 
@@ -48,15 +50,15 @@ end;
 function GetId(e: IInterface): string;
 begin
   Result := '';
-  if Assigned(e) then 
+  if Assigned(e) then
     Result := RecordToStr(MasterOrSelf(e));
 end;
 
 function GetName(e: IInterface): string;
 begin
   Result := '';
-  if Assigned(e) then 
-    Result := GetElementEditValues(e, 'FULL');    
+  if Assigned(e) then
+    Result := GetElementEditValues(e, 'FULL');
 end;
 
 function GetWeaponArmor(e: IInterface): string;
@@ -67,13 +69,13 @@ begin
   ench := LinksTo(ElementByPath(e, 'EITM'));
   rName := GetName(e);
   Result := Format(fullFmt, [rName, rName, GetId(e), GetName(ench), GetId(ench)]);
-  
+
   if Assigned(ench) then
     output2.Add(GetEnchant(ench));
 end;
 
 function GetEnchantMagnitude(e: IInterface): string;
-var 
+var
   i, n: Integer;
   fxs, fx, ench: IInterface;
   mag: Real;
@@ -84,7 +86,7 @@ const
 begin
   mags := TStringList.Create;
 
-  try    
+  try
     fxs := ElementByPath(e, 'Effects');
     n := ElementCount(fxs);
     for i := 0 to n - 1 do begin
@@ -97,23 +99,40 @@ begin
     Result := StringReplace(mags.CommaText, ',', ', ', [rfReplaceAll]);
     Result := StringReplace(Result, '"', '', [rfReplaceAll]);
   finally
-    mags.Free;    
+    mags.Free;
   end;
 end;
 
+function GetEnchantName(e: IInterface): string;
+var
+  r, edid: string;
+begin
+  r := GetName(e);
+  edid := EditorID(e);
+
+  if ContainsText(edid, '01') then r := r + ' I'
+  else if ContainsText(edid, '02') then r := r + ' II'
+  else if ContainsText(edid, '03') then r := r + ' III'
+  else if ContainsText(edid, '04') then r := r + ' IV'
+  else if ContainsText(edid, '05') then r := r + ' V'
+  else if ContainsText(edid, '06') then r := r + ' VI';
+  
+  Result := r;
+end;
+
 function GetEnchant(e: IInterface): string;
-const 
+const
   nameFmt = '%s (%s)';
 var
   nm: string;
 begin
   nm := GetEnchantMagnitude(e);
   // nm := Format(nameFmt, [GetName(e), GetEnchantMagnitude(e)]);
-  Result := Format(enchFmt, [nm, GetId(e)]);
+  Result := Format(enchFmt, [GetEnchantName(e), nm, GetId(e)]);
 end;
 
 function Process(e: IInterface): Integer;
-var 
+var
   s: string;
 begin
   s := '';

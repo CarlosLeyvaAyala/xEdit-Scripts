@@ -90,12 +90,22 @@ end;
 procedure AddKeyword(e: IInterface; edid, fileName: string);
 var
     keys: IwbGroupRecord;
-    key, k: IInterface;
+    key, k, esp, f: IInterface;
+    i: Integer;
 begin
-    if KeywordIndex(e, edid) <> -1 then Exit;
+    esp := nil;
+    for i := 0 to FileCount - 1 do begin
+      f := FileByIndex(i);
+      if GetFileName(f) = fileName then begin
+        esp := f;
+        Break;
+      end;
+    end;
+
+    if (KeywordIndex(e, edid) <> -1) or (not Assigned(esp)) then Exit;
 
     // Find in Skyrim.esm
-    key := MainRecordByEditorID(GroupBySignature(FileByIndex(0), 'KYWD'), edid);
+    key := MainRecordByEditorID(GroupBySignature(esp, 'KYWD'), edid);
     if Assigned(key) then begin
         k := ElementAssign(ElementByPath(e, 'KWDA'), HighInteger, nil, false);
         SetEditValue(k, Name(key));
@@ -247,20 +257,35 @@ begin
   AddMessage(' ')
 end;
 
+procedure RemoveOverrides(e: IInterface);
+var
+  n: Integer;
+  d: IInterface;
+begin
+  n := OverrideCount(e);
+  while n > 0 do begin
+    d := OverrideByIndex(e, n - 1);
+    Remove(d);
+    n := OverrideCount(e);
+  end;
+end;
+
 function Process(e: IInterface): Integer;
 var
     v: variant;
 //     s: TStringList;
     s, s2, basePath: string;
     isUnique, o: IInterface;
-    i: Integer;
+    i, n: Integer;
     r: Real;
 const
     race = 'Arg';
     sex = 'Man';
     fitness = 'Fat';
 begin
-  SetElementEditValues(e, 'Magic Effect Data\DATA\Hit Shader', 'MuffleFXShader [EFSH:000BCF25]');
+  AddMessage('"' + EditorID(e) + '",');
+  // RemoveOverrides(e);
+  // SetElementEditValues(e, 'Magic Effect Data\DATA\Hit Shader', 'MuffleFXShader [EFSH:000BCF25]');
   // Add(e, 'Armature', false);
   // MakeIsLocation(e);
   // AddMessage(ActualFixedFormId(e, false, true, true));
@@ -308,10 +333,17 @@ begin
     // SetElementNativeValues(e, 'DATA\Weight', 5);
     // AddMessage({GetElementEditValues(e, 'FULL') + ' ' + }GetElementEditValues(e, 'DATA\Weight'));
 
-    ConvertToArmorClothes(e);
+    // ConvertToArmorClothes(e);
     // ConvertToArmorLight(e);
     // ConvertToArmorHeavy(e);
     // AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');
+    // AddKeyword(e, 'SLA_BootsHeels', 'SexLabAroused.esm');
+    // AddKeyword(e, 'SLA_ArmorHalfNaked', 'SexLabAroused.esm');
+    // AddKeyword(e, 'SLA_ThongGString', 'SexLabAroused.esm');
+    // AddKeyword(e, 'SLA_ArmorPartTop', 'SexLabAroused.esm');
+    // AddKeyword(e, 'SLA_Brabikini', 'SexLabAroused.esm');
+    // AddKeyword(e, 'SLA_ArmorHalfNakedBikini', 'SexLabAroused.esm');
+    // AddKeyword(e, 'SLA_ArmorHalfNaked', 'SexLabAroused.esm');
     // Add(e, 'EITM', true);
     // AddEmptyKeyword(e);
     // ============================================================
