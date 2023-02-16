@@ -283,7 +283,7 @@ const
     sex = 'Man';
     fitness = 'Fat';
 begin
-  AddMessage('"' + EditorID(e) + '",');
+  // AddMessage('"' + EditorID(e) + '",');
   // RemoveOverrides(e);
   // SetElementEditValues(e, 'Magic Effect Data\DATA\Hit Shader', 'MuffleFXShader [EFSH:000BCF25]');
   // Add(e, 'Armature', false);
@@ -333,7 +333,7 @@ begin
     // SetElementNativeValues(e, 'DATA\Weight', 5);
     // AddMessage({GetElementEditValues(e, 'FULL') + ' ' + }GetElementEditValues(e, 'DATA\Weight'));
 
-    // ConvertToArmorClothes(e);
+    ConvertToArmorClothes(e);
     // ConvertToArmorLight(e);
     // ConvertToArmorHeavy(e);
     // AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');
