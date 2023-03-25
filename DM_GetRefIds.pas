@@ -96,8 +96,12 @@ begin
 end;
 
 function Process(e: IInterface): Integer;
+var
+  master: IInterface;
 begin
   if Signature(e) <> 'ACHR' then Exit;
+  master := MasterOrSelf(e);
+  if IntToStr(OverrideCount(master)) <> 0 then Exit;
   GetNpcData(e);
 end;
 
