@@ -276,13 +276,36 @@ var
 //     s: TStringList;
     s, s2, basePath: string;
     isUnique, o: IInterface;
-    i, n: Integer;
+    i, j, n, m: Integer;
     r: Real;
+    elem, elem2: IwbGroupRecord;
 const
     race = 'Arg';
     sex = 'Man';
     fitness = 'Fat';
 begin
+  // if (Signature(e) = 'RACE') and HasKeyword(e, 'ActorTypeNPC') then 
+  e := HighestOverrideOrSelf(e, 9999);
+  if Signature(e) = 'CELL' then begin
+      elem := ChildGroup(e);
+      n := ElementCount(elem);
+        AddMessage(IntToStr(n));
+      for i := 0 to n do begin
+        elem2 := ChildGroup(elem);
+        m := ElementCount(elem2);
+        AddMessage(IntToStr(m));
+        for j := 0 to m do begin
+          AddMessage(Name(ElementByIndex(elem2, j)));
+        end;
+      end;      
+  end;
+    // for i := 0 to ElementCount(e) - 1 do begin
+    //   elem := ElementByIndex(e, i);
+    //   AddMessage(Name(elem));
+    //   ChildrenOf(e);
+    // end;
+
+    AddMessage(EditorID(e) + '  ' + IntToStr(ElementCount(e)));
   // AddMessage('"' + EditorID(e) + '",');
   // RemoveOverrides(e);
   // SetElementEditValues(e, 'Magic Effect Data\DATA\Hit Shader', 'MuffleFXShader [EFSH:000BCF25]');
@@ -333,7 +356,7 @@ begin
     // SetElementNativeValues(e, 'DATA\Weight', 5);
     // AddMessage({GetElementEditValues(e, 'FULL') + ' ' + }GetElementEditValues(e, 'DATA\Weight'));
 
-    ConvertToArmorClothes(e);
+    // ConvertToArmorClothes(e);
     // ConvertToArmorLight(e);
     // ConvertToArmorHeavy(e);
     // AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');

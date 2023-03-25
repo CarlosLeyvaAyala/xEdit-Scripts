@@ -31,7 +31,7 @@ end;
 function RecordToStr(e: IInterface): string;
 begin
   e := MasterOrSelf(e);
-  Result := Format('%s|0x%s', [
+  Result := Format('%s|%s', [
     GetFileName(GetFile(e)),
     ActualFixedFormId(e)
   ]);
