@@ -1,5 +1,7 @@
 unit DM_OutfitToSPID;
 {
+  Converts selected outfits to SPID records.
+
     Hotkey: Ctrl+F4
 }
 
@@ -34,7 +36,7 @@ function NpcFmt(e: IInterface): string;
 var
   otft: IInterface;
 begin
-  otft := LinksTo(ElementBySignature(e, 'DOFT')); // OutfitFmt()
+  otft := LinksTo(ElementBySignature(e, 'DOFT')); 
   Result := OutfitFmt(otft) + GetElementEditValues(e, 'FULL');
 end;
 

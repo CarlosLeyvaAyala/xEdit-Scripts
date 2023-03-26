@@ -1,14 +1,33 @@
-unit DM_OutfitFromSelected;
+unit DM_OutfitFromSelectedArmors;
 
-uses 
-  xEditApi, DM_SelectPlugin, 'lib\mteFiles';
+{
+  Creates a new outfit from selected armors.
+
+    Hotkey: Shift+F4
+}
+
+uses xEditApi;
 
 const
-  fileName = 'DM Unique Outfits.esp';
+  fileName = '<Change this>.esp';
 
 var
   gFileTo, gOft: IInterface;
   gCount: Integer;
+
+// Gets a file handle by its name.
+function FileByName(s: string): IInterface;
+var
+  i: integer;
+begin
+  Result := nil;
+
+  for i := 0 to FileCount - 1 do 
+    if GetFileName(FileByIndex(i)) = s then begin
+      Result := FileByIndex(i);
+      Exit;
+    end;
+end;
 
 // Create an empty outfit and return it's handle.
 function _OutfitFromTemplate(aOName: string): IInterface;
@@ -82,15 +101,31 @@ function Initialize: Integer;
 begin
   gCount := 0;
 
-  if fileName = '' then begin
-    gFileTo := GetPlugin('Where do you want to create the new outfit?');
+  if fileName = '<Change this>.esp' then begin
+    AddMessage(#13#10);
+    AddMessage(#13#10);
+    AddMessage('********************************************************************');
+    AddMessage('Please change the target plugin by modifing this script''s "fileName"');
+    AddMessage('variable (see bundled images for instructions).');
+    AddMessage(#13#10);
+    AddMessage('Options:');
+    AddMessage(#9'- Leave empty to add outfits to the armors'' plugin file.');
+    AddMessage(#9'- Rename it as MyFile.esp to add them to a file.');
+    AddMessage(#9'  If file does not exist, it is created with esl flags.');
+    AddMessage('********************************************************************');
+    AddMessage(#13#10);
+    AddMessage(#13#10);
+    Result := -1;
+    Exit;
+  end
+  else if fileName = '' then begin
+    AddMessage('Target plugin is empty. Outfit will be added to the file where your armors are.');
   end
   else begin
     gFileTo := FileByName(fileName);
     if(not Assigned(gFileTo)) then begin
-      AddMessage('File ' + fileName + ' couldn''t be found');
-      Result := -1;
-      Exit;
+      gFileTo := AddNewFileName(fileName, true);
+      AddMessage('File ' + fileName + ' was created with esl flags.');
     end
     AddMessage('Adding outfit to ' + GetFileName(gFileTo));
   end;
