@@ -177,7 +177,6 @@ begin
   if gCount = 0 then
     AddMessage('No armors added to outfit. Did you select valid armors when running this script?')
   else begin
-    // _CleanTemplatePijamas;
     AddMessage(
       Format(
         '%d records added to %s in %s',
