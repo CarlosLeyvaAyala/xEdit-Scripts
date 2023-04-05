@@ -45,7 +45,7 @@ end;
 
 function Process(e: IInterface): Integer;
 var
-  ed, f, n, s: string;
+  ed, f, n, s, kidLine: string;
 begin
   s := Signature(e);
   if (not ((s = 'ARMO') or (s = 'WEAP') or (s = 'AMMO'))) then Exit;
@@ -53,21 +53,15 @@ begin
   ed := EditorID(e);
   f := RecordToStr(e);
   n := DisplayName(e);
-  AddMessage(Format('%s|%s|%s|%s', [ed, f, s, n]));
-end;
-
-function CleanStr(s: string): string;
-begin
-  Result := LeftStr(s, Length(s) - 1);
-  Result := RightStr(Result, Length(Result) - 1);
-  Result := StringReplace(Result, '""', '"', [rfReplaceAll]);
-  Result := StringReplace(Result, '","', ',', [rfReplaceAll]);
+  kidLine := Format('%s|%s|%s|%s', [ed, f, s, n]);
+  AddMessage(kidLine);
+  output.Add(kidLine);
 end;
 
 function Finalize: Integer;
 begin
   AddMessage(#13#10#13#10);
-  // AddMessage(CleanStr(output.commaText));
+  output.SaveToFile('Edit Scripts\DM_Items.kid');
   output.Free;
 end;
 
