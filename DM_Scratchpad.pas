@@ -112,19 +112,6 @@ begin
     end;
 end;
 
-procedure SwapKeyword(e: IInterface; fromKey, toKey: string);
-var
-    idx: Integer;
-    key: IInterface;
-begin
-    idx := KeywordIndex(e, fromKey);
-    if idx <> -1 then begin
-        key := ElementByIndex(ElementByPath(e, 'KWDA'), idx);
-        AddMessage(toKey);
-        SetEditValue(key, toKey);
-    end;
-end;
-
 procedure ProcessFormlist(e: IInterface);
 var
     items, entry: IInterface;
@@ -139,32 +126,6 @@ begin
             GetElementEditValues(LinksTo(entry), 'EDID')
         );
     end;
-end;
-
-procedure ConvertToArmorType(e: IInterface; aType: string);
-begin
-    SetElementEditValues(e, 'BOD2\Armor Type', aType);
-end;
-
-procedure ConvertToArmorClothes(e: IInterface);
-begin
-    SwapKeyword(e, 'ArmorHeavy', 'ArmorClothing [KYWD:0006BBE8]');
-    SwapKeyword(e, 'ArmorLight', 'ArmorClothing [KYWD:0006BBE8]');
-    ConvertToArmorType(e, 'Clothing');
-end;
-
-procedure ConvertToArmorHeavy(e: IInterface);
-begin
-    SwapKeyword(e, 'ArmorClothing', 'ArmorHeavy [KYWD:0006BBD2]');
-    SwapKeyword(e, 'ArmorLight', 'ArmorHeavy [KYWD:0006BBD2]');
-    ConvertToArmorType(e, 'Heavy Armor');
-end;
-
-procedure ConvertToArmorLight(e: IInterface);
-begin
-    SwapKeyword(e, 'ArmorClothing', 'ArmorLight [KYWD:0006BBD3]');
-    SwapKeyword(e, 'ArmorHeavy', 'ArmorLight [KYWD:0006BBD3]');
-    ConvertToArmorType(e, 'Light Armor');
 end;
 
 procedure RemoveNonPlayable(e: IInterface);
@@ -356,9 +317,6 @@ begin
     // SetElementNativeValues(e, 'DATA\Weight', 5);
     // AddMessage({GetElementEditValues(e, 'FULL') + ' ' + }GetElementEditValues(e, 'DATA\Weight'));
 
-    // ConvertToArmorClothes(e);
-    // ConvertToArmorLight(e);
-    // ConvertToArmorHeavy(e);
     // AddKeyword(e, 'MagicDisallowEnchanting', 'Skyrim.esm');
     // AddKeyword(e, 'SLA_BootsHeels', 'SexLabAroused.esm');
     // AddKeyword(e, 'SLA_ArmorHalfNaked', 'SexLabAroused.esm');

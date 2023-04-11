@@ -2,11 +2,11 @@ unit DM_ArmorRatingSetter;
 {
   Hotkey: F6
 	
+	Change the hotkey to your preference.
+  
   Select a bunch of armors, set the total armor rating you want for them and
   this script will apply the correct armor rating for each piece.
   This is used for balancing custom armor mods to vanilla game levels.
-  
-	Change the hotkey to your preference.
 }
 
 uses xEditApi;
@@ -16,7 +16,7 @@ var
   
   // Processing regex:
   //    (\w+),?
-  arHead, arHands, arLegs, arBody: array[0..99] of IInterface;
+  arHead, arHands, arLegs, arBody: TList;
   nHead, nHands, nLegs, nBody: Byte;
 
 const
@@ -74,6 +74,9 @@ const
   hvHandMult = 0.17;
   hvLegsMult = 0.17;
 
+  // Predefined vanilla armor ratings
+  arLtLeather = 52
+
 // Asks the user to input a value. Made to deal with InputQuery bullshit behavior.
 function PromptQuery(ACaption, APrompt: string): string;
 var
@@ -88,17 +91,24 @@ begin
   Result := GetElementNativeValues(e, 'BOD2\Armor Type');
 end;
 
-function StrIdToRecord(id: string): IInterface;
-begin
-end;
+// function StrIdToRecord(id: string): IInterface;
+// begin
+// end;
 
 procedure ObjInit;
 begin
-  nBody := 0;
+    arHead := TList.Create;
+    arHands := TList.Create;
+    arLegs := TList.Create;
+    arBody := TList.Create;
 end;
 
 procedure ObjFree;
 begin
+    arHead.Free;
+    arHands.Free;
+    arLegs.Free;
+    arBody.Free;
 end;
 
 function GetArmorRating(e: IInterface): Integer;
@@ -112,14 +122,14 @@ var
   old: Integer;
   rName: string;
 const
-  fmtNoChange = '%8d = "%s" (armor rating was not changed)';
+  fmtNoChange = '%8d = "%s" (armor rating was not changed%s)';
   fmtChanged = '%8d -> %8d = "%s" %s';
 begin
   old := GetArmorRating(e);
   rName := GetElementEditValues(e, 'FULL');
 
   if old = newAR then begin
-    AddMessage(Format(fmtNoChange, [newAR, rName]));
+    AddMessage(Format(fmtNoChange, [newAR, rName, optMsg]));
     Exit;
   end;
 
@@ -181,104 +191,113 @@ end;
 
 procedure AddToArmorTypeList(e: IInterface);
 var 
-  slots: Cardinal;
+    slots: Cardinal;
 begin
-  slots := GetElementNativeValues(e, 'BOD2\First Person Flags');
+    slots := GetElementNativeValues(e, 'BOD2\First Person Flags');
 
-  if IsBodyArmor(slots) then begin
-    arBody[nBody] := e;
-    Inc(nBody);
-    Exit;
-  end;
+    if IsBodyArmor(slots) then begin
+        arBody.Add(e);
+        Exit;
+    end;
 
-  if IsHeadArmor(slots) then begin
-    arHead[nHead] := e;
-    Inc(nHead);
-    Exit;
-  end;
+    if IsHeadArmor(slots) then begin
+        arHead.Add(e);
+        Exit;
+    end;
 
-  if IsHandsArmor(slots) then begin
-    arHands[nHands] := e;
-    Inc(nHands);
-    Exit;
-  end;
+    if IsHandsArmor(slots) then begin
+        arHands.Add(e);
+        Exit;
+    end;
 
-  if IsLegsArmor(slots) then begin
-    arLegs[nLegs] := e;
-    Inc(nLegs);
-    Exit;
-  end;
+    if IsLegsArmor(slots) then begin
+        arLegs.Add(e);
+        Exit;
+    end;
+end;
+
+procedure SetRating(ltMult, hvMult: Real; list: TList);
+var
+  i, AR: Integer;
+begin
+    AR := Round(totalAR * ltMult);
+    for i := 0 to list.count - 1 do 
+        SetArmorRating(ObjectToElement(list[i]), AR, '');
 end;
 
 procedure SetBodyRating;
-var
-  i, AR: Integer;
+// var
+//   i, AR: Integer;
 begin
-  AR := Round(totalAR * ltBodyMult);
-  for i := 0 to nBody - 1 do 
-    SetArmorRating(arBody[i], AR, '');
+    SetRating(ltBodyMult, hvBodyMult, arBody);
+//   AR := Round(totalAR * ltBodyMult);
+//   for i := 0 to nBody - 1 do 
+//     SetArmorRating(arBody[i], AR, '');
 end;
 
 procedure SetHeadRating;
-var
-  i, AR: Integer;
+// var
+//   i, AR: Integer;
 begin
-  AR := Round(totalAR * ltHeadMult);
-  for i := 0 to nHead - 1 do 
-    SetArmorRating(arHead[i], AR, '');
+    SetRating(ltHeadMult, hvHeadMult, arHead);
+//   AR := Round(totalAR * ltHeadMult);
+//   for i := 0 to nHead - 1 do 
+//     SetArmorRating(arHead[i], AR, '');
 end;
 
 procedure SetLegsRating;
-var
-  i, AR: Integer;
+// var
+//   i, AR: Integer;
 begin
-  AR := Round(totalAR * ltLegsMult);
-  for i := 0 to nLegs - 1 do 
-    SetArmorRating(arLegs[i], AR, '');
+    SetRating(ltLegsMult, hvLegsMult, arLegs);
+//   AR := Round(totalAR * ltLegsMult);
+//   for i := 0 to nLegs - 1 do 
+//     SetArmorRating(arLegs[i], AR, '');
 end;
 
 procedure SetHandRating;
-var
-  i, AR: Integer;
+// var
+//   i, AR: Integer;
 begin
-  AR := Round(totalAR * ltHandMult);
-  for i := 0 to nHands - 1 do 
-    SetArmorRating(arHands[i], AR, '');
+    SetRating(ltHandsMult, hvHandsMult, arHands);
+//   AR := Round(totalAR * ltHandMult);
+//   for i := 0 to nHands - 1 do 
+//     SetArmorRating(arHands[i], AR, '');
 end;
 
 function Initialize: Integer;
 var
-  s: string;
+    s: string;
 begin
   // s := PromptQuery('Set Armor Rating', 'Expected **total** AR');
   // totalAR := StrToInt(s);
-  totalAR := desiredAR;
+    totalAR := desiredAR;
 
-  if totalAR < 0 then begin
-    AddMessage('Only positive values are allowed.');
-    Result := 1;
-  end;
-  ObjInit;
+    if totalAR < 0 then begin
+        AddMessage('Only positive values are allowed.');
+        Result := 1;
+    end;
+    ObjInit;
 end;
 
 function Finalize: Integer;
 begin
-  SetBodyRating;
-  SetHeadRating;
-  SetLegsRating;
-  SetHandRating;
-  ObjFree;
+    SetBodyRating;
+    SetHeadRating;
+    SetLegsRating;
+    SetHandRating;
+    ObjFree;
 end;
 
 function Process(e: IInterface): Integer;
 begin
-  if(Signature(e) <> 'ARMO') then Exit;
+    if(Signature(e) <> 'ARMO') then Exit;
 
-  if GetArmorType(e) = atCloth then begin
-    SetArmorRating(e, 0, '(clothes have no armor rating)');
-    Exit;
-  end;
-  AddToArmorTypeList(e);
+    if GetArmorType(e) = atCloth then begin
+        SetArmorRating(e, 0, ': clothes have no armor rating');
+        Exit;
+    end;
+    AddToArmorTypeList(e);
 end;
 
 end.
