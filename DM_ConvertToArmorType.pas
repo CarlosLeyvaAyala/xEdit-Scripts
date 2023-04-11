@@ -15,6 +15,10 @@ const
     arTypeLight = 1;
     arTypeHeavy = 2;
 
+    ArmorClothing = 'ArmorClothing';
+    ArmorLight = 'ArmorLight';
+    ArmorHeavy = 'ArmorHeavy';
+
 function KeywordIndex(e: IInterface; edid: string): Integer;
 var
   kwda: IInterface;
@@ -47,23 +51,44 @@ begin
 end;
 
 procedure ConvertToArmorClothes(e: IInterface);
+const
+    ArmorClothingL = 'ArmorClothing [KYWD:0006BBE8]';
 begin
-    SwapKeyword(e, 'ArmorHeavy', 'ArmorClothing [KYWD:0006BBE8]');
-    SwapKeyword(e, 'ArmorLight', 'ArmorClothing [KYWD:0006BBE8]');
+    SwapKeyword(e, ArmorHeavy, ArmorClothingL);
+    SwapKeyword(e, ArmorLight, ArmorClothingL);
+    SwapKeyword(e, 'ArmorCuirass', 'ClothingBody [KYWD:000A8657]');
+    SwapKeyword(e, 'ArmorGauntlets', 'ClothingHands [KYWD:0010CD13]');
+    SwapKeyword(e, 'ArmorHelmet ', 'ClothingHead [KYWD:0010CD11]');
+    SwapKeyword(e, 'ArmorBoots', 'ClothingFeet [KYWD:0010CD12]');
+
     ConvertToArmorType(e, 'Clothing');
 end;
 
-procedure ConvertToArmorHeavy(e: IInterface);
+procedure SwapToArmored(e: IInterface);
 begin
-    SwapKeyword(e, 'ArmorClothing', 'ArmorHeavy [KYWD:0006BBD2]');
-    SwapKeyword(e, 'ArmorLight', 'ArmorHeavy [KYWD:0006BBD2]');
+    SwapKeyword(e, 'ClothingBody', 'ArmorCuirass [KYWD:0006C0EC]');
+    SwapKeyword(e, 'ClothingHands', 'ArmorGauntlets [KYWD:0006C0EF]');
+    SwapKeyword(e, 'ClothingHead', 'ArmorHelmet [KYWD:0006C0EE]');
+    SwapKeyword(e, 'ClothingFeet', 'ArmorBoots [KYWD:0006C0ED]');
+end;
+
+procedure ConvertToArmorHeavy(e: IInterface);
+const
+    ArmorHeavyL = 'ArmorHeavy [KYWD:0006BBD2]';
+begin
+    SwapKeyword(e, ArmorClothing, ArmorHeavyL);
+    SwapKeyword(e, ArmorLight, ArmorHeavyL);
+    SwapToArmored(e);
     ConvertToArmorType(e, 'Heavy Armor');
 end;
 
 procedure ConvertToArmorLight(e: IInterface);
+const
+    ArmorLightL = 'ArmorLight [KYWD:0006BBD3]';
 begin
-    SwapKeyword(e, 'ArmorClothing', 'ArmorLight [KYWD:0006BBD3]');
-    SwapKeyword(e, 'ArmorHeavy', 'ArmorLight [KYWD:0006BBD3]');
+    SwapKeyword(e, ArmorClothing, ArmorLightL);
+    SwapKeyword(e, ArmorHeavy, ArmorLightL);
+    SwapToArmored(e);
     ConvertToArmorType(e, 'Light Armor');
 end;
 
