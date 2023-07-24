@@ -72,12 +72,28 @@ begin
     end;
 end;
 
-procedure SetEDID(e: IInterface; const edid: string; const i: Integer);
+procedure SetEDID(e: IInterface; edid: string; i: Integer);
+var 
+    edid2: string;
 begin
-    SetEditorID(newRecord, Format('%s_%.2d', [edid, i]));
+    if(i < 1) then
+        edid2 := Format('%s_Var', [edid])
+    else
+        edid2 := Format('%s_%.2d', [edid, i]);
+
+    SetEditorID(e, edid2);
 end;
 
-procedure CopyToWaed(e: IInterface);
+function CopyToWaed(e: IInterface; edid: string; i: Integer): IInterface;
+var
+    newRecord: IInterface;
+begin
+    newRecord := wbCopyElementToFile(e, gOutFile, true, true);
+    SetEDID(newRecord, edid, i);
+    Result := newRecord;
+end;
+
+procedure CreateDistractionCopies(e: IInterface);
 var 
     i: Integer;
     newRecord: IInterface;
@@ -106,8 +122,9 @@ end;
 
 function Process(e: IInterface): Integer;
 begin
-    // if Signature(e) = 'ENCH' then CopyToWaed(e);
-    AddMessage(GetBaseEdid(e));
+    // if Signature(e) = 'ENCH' then CreateDistractionCopies(e);
+    if Signature(e) = 'ENCH' then CopyToWaed(e, GetBaseEdid(e), 0);
+    // AddMessage(GetBaseEdid(e));
 end;
 
 function Initialize: Integer;
