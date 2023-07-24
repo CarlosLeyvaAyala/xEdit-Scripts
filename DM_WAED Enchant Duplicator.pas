@@ -96,35 +96,30 @@ end;
 procedure CreateDistractionCopies(e: IInterface);
 var 
     i: Integer;
-    newRecord: IInterface;
+    newRecord, newFx: IInterface;
     fxs, fx, ench: IInterface;
     edid: string;
 begin
-    edid := GetBaseEdid(e);
+    edid := GetBaseEdid(e) + '_Distraction';
 
-    for i := 2 to distractionN do begin
-        // Copy record
-        newRecord := wbCopyElementToFile(e, gOutFile, true, true);
-        SetEDID(newRecord, edid, i);
-
-        // edid := GetBaseEdid(EditorID(e));
-        // edid := Format('DM_%s%.2d', [edid, i]);
-        // SetEditorID(newRecord, edid);
+    for i := 1 to distractionN do begin
+        newRecord := CopyToWaed(e, edid, i);
 
         // Change effect
         fxs := ElementByPath(newRecord, 'Effects');
-        fx := ElementByIndex(fxs, 0);
+        // fx := ElementByIndex(fxs, 0);
+        fx := ElementAssign(fxs, HighInteger, nil, false);;
         ench := ElementByPath(fx, 'EFID');
         SetEditValue(ench, Name(RecordByEditorID(gBaseWaedFile, distractionBattleEdid[i])));
     end;
-
 end;
 
 function Process(e: IInterface): Integer;
 begin
-    // if Signature(e) = 'ENCH' then CreateDistractionCopies(e);
-    if Signature(e) = 'ENCH' then CopyToWaed(e, GetBaseEdid(e), 0);
-    // AddMessage(GetBaseEdid(e));
+    if Signature(e) = 'ENCH' then begin 
+        CopyToWaed(e, GetBaseEdid(e), 0);
+        CreateDistractionCopies(e);
+    end;
 end;
 
 function Initialize: Integer;
