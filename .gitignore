@@ -1,5 +1,6 @@
 # Ignore all files not from this project
 *
+!DM*.fsx
 !DM*.pas
 # !DM*.ini
 !/DM_RenameUtils
@@ -11,3 +12,4 @@
 *.nif
 *.txt
 *.bak
+DM_WAED_AddEnchantments.pas

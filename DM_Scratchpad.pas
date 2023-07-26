@@ -231,6 +231,45 @@ begin
   end;
 end;
 
+procedure GetEnchantEffects(e: IInterface);
+var
+  i, n: Integer;
+  fxs, fx, ench: IInterface;
+  mag: Real;
+  mags: TStringList;
+  eName: string;
+const
+  fmt = '%s (%g)';
+begin
+    fxs := ElementByPath(e, 'Effects');
+    n := ElementCount(fxs);
+    AddMessage(#13#10);
+    for i := 0 to n - 1 do begin
+        AddMessage('***S');
+      fx := ElementByIndex(fxs, i);
+      ench := ElementByPath(fx, 'EFID');
+      AddMessage(GetEditValue(ench));
+      AddMessage(Format(#9'Magnitude: %f', [GetElementNativeValues(fx, 'EFIT\Magnitude')]));
+      AddMessage(Format(#9'Area: %s', [GetElementNativeValues(fx, 'EFIT\Area')]));
+      AddMessage(Format(#9'Duration: %s', [GetElementNativeValues(fx, 'EFIT\Duration')]));
+        AddMessage('***E');
+    end;
+    AddMessage(#13#10);
+end;
+
+function FileByName(s: string): IInterface;
+var
+  i: integer;
+begin
+  Result := nil;
+
+  for i := 0 to FileCount - 1 do 
+    if GetFileName(FileByIndex(i)) = s then begin
+      Result := FileByIndex(i);
+      Exit;
+    end;
+end;
+
 function Process(e: IInterface): Integer;
 var
     v: variant;
@@ -245,28 +284,30 @@ const
     sex = 'Man';
     fitness = 'Fat';
 begin
+    if Signature(e) = 'ENCH' then GetEnchantEffects(e);
+
   // if (Signature(e) = 'RACE') and HasKeyword(e, 'ActorTypeNPC') then 
-  e := HighestOverrideOrSelf(e, 9999);
-  if Signature(e) = 'CELL' then begin
-      elem := ChildGroup(e);
-      n := ElementCount(elem);
-        AddMessage(IntToStr(n));
-      for i := 0 to n do begin
-        elem2 := ChildGroup(elem);
-        m := ElementCount(elem2);
-        AddMessage(IntToStr(m));
-        for j := 0 to m do begin
-          AddMessage(Name(ElementByIndex(elem2, j)));
-        end;
-      end;      
-  end;
+//   e := HighestOverrideOrSelf(e, 9999);
+//   if Signature(e) = 'CELL' then begin
+//       elem := ChildGroup(e);
+//       n := ElementCount(elem);
+//         AddMessage(IntToStr(n));
+//       for i := 0 to n do begin
+//         elem2 := ChildGroup(elem);
+//         m := ElementCount(elem2);
+//         AddMessage(IntToStr(m));
+//         for j := 0 to m do begin
+//           AddMessage(Name(ElementByIndex(elem2, j)));
+//         end;
+//       end;      
+//   end;
     // for i := 0 to ElementCount(e) - 1 do begin
     //   elem := ElementByIndex(e, i);
     //   AddMessage(Name(elem));
     //   ChildrenOf(e);
     // end;
 
-    AddMessage(EditorID(e) + '  ' + IntToStr(ElementCount(e)));
+    // AddMessage(EditorID(e) + '  ' + IntToStr(ElementCount(e)));
   // AddMessage('"' + EditorID(e) + '",');
   // RemoveOverrides(e);
   // SetElementEditValues(e, 'Magic Effect Data\DATA\Hit Shader', 'MuffleFXShader [EFSH:000BCF25]');
