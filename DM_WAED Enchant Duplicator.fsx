@@ -21,26 +21,14 @@ let getOutFile () =
     | OutFilePrompt.WantsSummermyst -> "WAED Enchantments - Summermyst.esp"
     | x -> failwith $"({x}) is not a valid option"
 
-getOutFile ()
-
-let t =
-    """
-***S
-EnchFortifyStaminaConstantSelf "Fortify Stamina" [MGEF:00049507]
-	Magnitude: 20.00
-	Area: 0
-	Duration: 0
-***E
-"""
-
 type EnchFX =
     { name: string
       magnitude: float
       area: int
       duration: int }
 
-let getEffects () =
-    let ms = Regex(@"(?ms)\*\*\*S(.*?)\*\*\*E").Matches(t)
+let getEffects text =
+    let ms = Regex(@"(?ms)\*\*\*S(.*?)\*\*\*E").Matches(text)
 
     let effects =
         [| for m in ms do
@@ -71,14 +59,26 @@ let getEffects () =
     effects.Trim()
 
 let outFile = getOutFile ()
-let effects = getEffects ()
-let getEnchantName () = 
-    printfn "What is the enchant name (FULL)?"
-    Console.ReadLine() |> Globalization.CultureInfo("en-US", false).TextInfo.ToTitleCase
-let generateEdid enchName = 
-    "DM_Ench_" + Regex(@"\s+").Replace(enchName, "") + "_Var"
+let effects = TextCopy.ClipboardService.GetText() |> getEffects
 
-let full = getEnchantName()
+let getEnchantName () =
+    printfn "What is the enchant name (FULL)?"
+
+    Console.ReadLine()
+    |> Globalization
+        .CultureInfo(
+            "en-US",
+            false
+        )
+        .TextInfo
+        .ToTitleCase
+
+let generateEdid enchName =
+    "DM_Ench_"
+    + Regex(@"\s+").Replace(enchName, "")
+    + "_Var"
+
+let full = getEnchantName ()
 let edid = generateEdid full
 
 let contents =
@@ -142,4 +142,3 @@ end.
 
 
 File.WriteAllText(Path.Combine(__SOURCE_DIRECTORY__, "DM_WAED_AddEnchantments.pas"), contents)
-
