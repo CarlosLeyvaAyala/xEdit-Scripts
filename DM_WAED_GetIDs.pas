@@ -47,7 +47,15 @@ begin
   ]);
 end;
 
+// TODO: DELETE
 function GetId(e: IInterface): string;
+begin
+  Result := '';
+  if Assigned(e) then
+    Result := RecordToStr(MasterOrSelf(e));
+end;
+
+function GetUniqueId(e: IInterface): string;
 begin
   Result := '';
   if Assigned(e) then
@@ -61,6 +69,7 @@ begin
     Result := GetElementEditValues(e, 'FULL');
 end;
 
+// TODO: DELETE
 function GetWeaponArmor(e: IInterface): string;
 var
   rName: string;
@@ -74,6 +83,7 @@ begin
     output2.Add(GetEnchant(ench));
 end;
 
+// TODO: DELETE
 function GetEnchantMagnitude(e: IInterface): string;
 var
   i, n: Integer;
@@ -103,6 +113,7 @@ begin
   end;
 end;
 
+// TODO: DELETE
 function GetEnchantName(e: IInterface): string;
 var
   r, edid: string;
@@ -120,6 +131,7 @@ begin
   Result := r;
 end;
 
+// TODO: DELETE
 function GetEnchant(e: IInterface): string;
 const
   nameFmt = '%s (%s)';
@@ -131,13 +143,52 @@ begin
   Result := Format(enchFmt, [GetEnchantName(e), nm, GetId(e)]);
 end;
 
+function GetObjectFxData(e: IInterface): string;
+var
+    i, n: Integer;
+    fxs, fx, ench: IInterface;
+    uid, eName, edid, a, d ,m: string;
+const
+    fmt = '%s;;%s;;%s;;%s;;%s;;%s;;;';
+begin
+    Result := '';
+
+    fxs := ElementByPath(e, 'Effects');
+    n := ElementCount(fxs);
+    for i := 0 to n - 1 do begin
+        fx := ElementByIndex(fxs, i);
+        ench := LinksTo(ElementByPath(fx, 'EFID'));
+        
+        uid := GetUniqueId(ench);
+        edid := EditorID(ench);
+        eName := GetElementEditValues(ench, 'FULL');
+        a := GetElementEditValues(fx, 'EFIT\Area');
+        d := GetElementEditValues(fx, 'EFIT\Duration');
+        m := GetElementEditValues(fx, 'EFIT\Magnitude');
+
+        Result := Result + Format(fmt, [uid, edid, eName, a, d, m]);
+    end;
+
+    Result := DeleteByRegex(Result, ';;;$');
+end;
+
+// Gets enchantment data used by the Skyrim Item Manager
+function GetEnchantSIM(e: IInterface): string;
+const
+  fmt = '%s;;;%s;;;%s;;;%s';
+var
+  nm: string;
+begin
+  Result := Format(fmt, [GetId(e), EditorID(e), GetName(e), GetObjectFxData(e)]);
+end;
+
 function Process(e: IInterface): Integer;
 var
   s: string;
 begin
   s := '';
   if Signature(e) = 'ARMO' then s := GetWeaponArmor(e)
-  else if Signature(e) = 'ENCH' then s := GetEnchant(e);
+  else if Signature(e) = 'ENCH' then s := GetEnchant(e) + #13#10#13#10 + GetEnchantSIM(e);
 
   if s <> '' then output.Add(s)
 end;
@@ -176,6 +227,22 @@ begin
 
   output.Free;
   output2.Free;
+end;
+
+function DeleteByRegex(subject, regex: string): string;
+var
+    r: TPerlRegex;
+begin
+    r := TPerlRegex.Create;
+    try
+        r.Subject := subject;
+        r.RegEx := regex;
+        r.Replacement := '\1';
+        r.ReplaceAll;
+        Result := r.Subject;
+    finally
+        r.Free;
+    end;
 end;
 
 end.
