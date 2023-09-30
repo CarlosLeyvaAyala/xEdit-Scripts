@@ -11,18 +11,24 @@ uses xEditApi;
 implementation
 
 var
-  items, outfits: TStringList;
+  items, outfits, keywords, spidStrings, spidForms: TStringList;
 
 procedure CreateObjects;
 begin
     items := TStringList.Create;
     outfits := TStringList.Create;
+    keywords := TStringList.Create;
+    spidStrings := TStringList.Create;
+    spidForms := TStringList.Create;
 end;
 
 procedure FreeObjects;
 begin
     items.Free;
     outfits.Free;
+    keywords.Free;
+    spidStrings.Free;
+    spidForms.Free;
 end;
 
 function IsESL(f: IInterface): Boolean;
@@ -38,6 +44,25 @@ begin
   if(IsESL(GetFile(e))) then ffID := fID and $FFF
   else ffID := fID and $FFFFFF;
   Result := Lowercase(IntToHex(ffID, 1));
+end;
+
+function KeywordIndex(e: IInterface; edid: string): Integer;
+var
+  kwda: IInterface;
+  n: integer;
+begin
+  Result := -1;
+  kwda := ElementByPath(e, 'KWDA');
+  for n := 0 to ElementCount(kwda) - 1 do
+    if GetElementEditValues(LinksTo(ElementByIndex(kwda, n)), 'EDID') = edid then begin
+      Result := n;
+      Exit;
+    end;
+end;
+
+function HasKeyword(e: IInterface; edid: string): boolean;
+begin
+  Result := KeywordIndex(e, edid) <> -1;
 end;
 
 function RecordToStr(e: IInterface): string;
@@ -61,6 +86,9 @@ begin
     AddSeparator;
 end;
 
+///////////////////////////////////////////////////////////////////////
+// Item
+///////////////////////////////////////////////////////////////////////
 procedure AddItem(e: IInterface);
 var
     ed, f, n, kidLine, s: string;
@@ -74,6 +102,9 @@ begin
     items.Add(kidLine);
 end;
 
+///////////////////////////////////////////////////////////////////////
+// Outfit
+///////////////////////////////////////////////////////////////////////
 function GetOutfitItems(e: IInterface): string;
 var
     i: Integer;
@@ -111,13 +142,54 @@ begin
     outfits.Add(kidLine);
 end;
 
+///////////////////////////////////////////////////////////////////////
+// Keyword
+///////////////////////////////////////////////////////////////////////
+procedure AddKeyword(e: IInterface);
+var 
+    output: string;
+begin
+    output := EditorID(e);
+    AddMessage(output);
+    keywords.Add(output);
+end;
+
+///////////////////////////////////////////////////////////////////////
+// NPC
+///////////////////////////////////////////////////////////////////////
+procedure AddNPC(e: IInterface);
+var 
+    full, short: string;
+    iRace: IInterface;
+begin
+    iRace := LinksTo(ElementByPath(e, 'RNAM'));
+
+    if not HasKeyword(iRace, 'ActorTypeNPC') 
+        or ElementExists(e, 'ACBS - Configuration\Flags\Is CharGen Face Preset') then Exit;
+
+    AddMessage(EditorID(e));
+    spidStrings.Add(EditorID(e));
+
+    full := GetElementEditValues(e, 'FULL');
+    if full <> ''then spidStrings.Add(full);
+
+    short := GetElementEditValues(e, 'SHRT');
+    if short <> '' then spidStrings.Add(short);
+end;
+
+///////////////////////////////////////////////////////////////////////
+// Base processing
+///////////////////////////////////////////////////////////////////////
+
 function Process(e: IInterface): Integer;
 var
     s: string;
 begin
     s := Signature(e);
     if ((s = 'ARMO') or (s = 'WEAP') or (s = 'AMMO')) then AddItem(e)
-    else if s= 'OTFT' then AddOutfit(e);
+    else if s= 'OTFT' then AddOutfit(e)
+    else if s= 'NPC_' then AddNPC(e)
+    else if s= 'KYWD' then AddKeyword(e);
 end;
 
 procedure SaveFile(const contents: TStringList; filename: string);
@@ -131,6 +203,9 @@ begin
     AddSeparator;
     SaveFile(items, '___.items');
     SaveFile(outfits, '___.outfits');
+    SaveFile(keywords, '___.keywords');
+    SaveFile(spidStrings, '___.spidstrs');
+    SaveFile(spidForms, '___.spidfrms');
     // if items.Count > 0 then items.SaveToFile('Edit Scripts\___.items');
     // if outfits.Count > 0 then outfits.SaveToFile('Edit Scripts\___.outfits');
     FreeObjects;
