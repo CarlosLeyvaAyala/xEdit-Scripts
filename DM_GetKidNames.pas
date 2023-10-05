@@ -11,7 +11,7 @@ uses xEditApi;
 implementation
 
 var
-  items, outfits, keywords, spidStrings, spidForms: TStringList;
+    items, outfits, keywords, spidStrings, spidForms: TStringList;
 
 procedure CreateObjects;
 begin
@@ -155,9 +155,36 @@ begin
 end;
 
 ///////////////////////////////////////////////////////////////////////
+// SPID Functions
+///////////////////////////////////////////////////////////////////////
+function SpidElement(e: IInterface; path, category: string): string;
+var
+    v: string;
+const
+    spidAcFmt = '%s|%s'; // SPID Autcomcomplete Format -> Value|Category
+begin
+    v := GetElementEditValues(e, path);
+    if v <> '' then Result := Format(spidAcFmt, [v, category])
+    else Result := '';
+end;
+
+procedure SpidString(e: IInterface; path, category: string);
+var
+    v: string;
+begin
+    v := SpidElement(e, path, category);
+    if v <> '' then spidStrings.Add(v);
+end;
+
+procedure SpidForm(e: IInterface);
+begin
+    spidForms.Add(SpidElement(e, EditorID(e), 'EDID'));
+end;
+
+///////////////////////////////////////////////////////////////////////
 // NPC
 ///////////////////////////////////////////////////////////////////////
-procedure AddNPC(e: IInterface);
+procedure AddSpidNPC(e: IInterface);
 var 
     full, short: string;
     iRace: IInterface;
@@ -168,13 +195,24 @@ begin
         or ElementExists(e, 'ACBS - Configuration\Flags\Is CharGen Face Preset') then Exit;
 
     AddMessage(EditorID(e));
-    spidStrings.Add(EditorID(e));
+    SpidString(e, 'EDID', 'EDID');
+    SpidString(e, 'FULL', 'Full name');
+    //// Not exported anymore because it can be troublesome for autocompleting
+    // SpidString(e, 'SHRT', 'Short name');  NOT
+end;
 
-    full := GetElementEditValues(e, 'FULL');
-    if full <> ''then spidStrings.Add(full);
+///////////////////////////////////////////////////////////////////////
+// Race
+///////////////////////////////////////////////////////////////////////
+procedure AddSpidRace(e: IInterface);
+var 
+    full, short: string;
+    iRace: IInterface;
+begin
+    if not HasKeyword(e, 'ActorTypeNPC') then Exit;
 
-    short := GetElementEditValues(e, 'SHRT');
-    if short <> '' then spidStrings.Add(short);
+    AddMessage(EditorID(e));
+    SpidForm(e);
 end;
 
 ///////////////////////////////////////////////////////////////////////
@@ -188,8 +226,19 @@ begin
     s := Signature(e);
     if ((s = 'ARMO') or (s = 'WEAP') or (s = 'AMMO')) then AddItem(e)
     else if s= 'OTFT' then AddOutfit(e)
-    else if s= 'NPC_' then AddNPC(e)
-    else if s= 'KYWD' then AddKeyword(e);
+    else if s= 'KYWD' then AddKeyword(e)
+    else if s= 'NPC_' then AddSpidNPC(e)
+    else if s= 'RACE' then AddSpidRace(e);
+
+// Faction
+// Class
+// CombatStyle
+// Outfit
+// NPC
+// Spell
+// VoiceType
+// FormList
+// Editor Location    
 end;
 
 procedure SaveFile(const contents: TStringList; filename: string);
@@ -206,8 +255,6 @@ begin
     SaveFile(keywords, '___.keywords');
     SaveFile(spidStrings, '___.spidstrs');
     SaveFile(spidForms, '___.spidfrms');
-    // if items.Count > 0 then items.SaveToFile('Edit Scripts\___.items');
-    // if outfits.Count > 0 then outfits.SaveToFile('Edit Scripts\___.outfits');
     FreeObjects;
 end;
 
