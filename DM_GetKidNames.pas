@@ -176,43 +176,96 @@ begin
     if v <> '' then spidStrings.Add(v);
 end;
 
-procedure SpidForm(e: IInterface);
+procedure SpidForm(e: IInterface; category: string);
 begin
-    spidForms.Add(SpidElement(e, EditorID(e), 'EDID'));
+    spidForms.Add(SpidElement(e, 'EDID', category));
+end;
+
+procedure AddSpidForm(e: IInterface; category: string);
+begin
+    AddMessage(EditorID(e));
+    SpidForm(e, category);
 end;
 
 ///////////////////////////////////////////////////////////////////////
 // NPC
 ///////////////////////////////////////////////////////////////////////
-procedure AddSpidNPC(e: IInterface);
+// A valid NPC must be a humanoid race.
+function IsValidNPC(e: IInterface): boolean;
 var 
-    full, short: string;
     iRace: IInterface;
 begin
     iRace := LinksTo(ElementByPath(e, 'RNAM'));
+    Result := 
+        HasKeyword(iRace, 'ActorTypeNPC') and 
+        (not ElementExists(e, 'ACBS - Configuration\Flags\Is CharGen Face Preset')) and
+        (not HasKeyword(iRace, 'ActorTypeCreature')) and 
+        (not HasKeyword(iRace, 'ActorTypeAnimal'));
+end;
 
-    if not HasKeyword(iRace, 'ActorTypeNPC') 
-        or ElementExists(e, 'ACBS - Configuration\Flags\Is CharGen Face Preset') then Exit;
+procedure AddSpidNPC(e: IInterface);
+var 
+    i: Integer;
+    factions, faction: IInterface;
+begin
+    if not IsValidNPC(e) then Exit;
 
+    AddMessage('--------------------------------');
     AddMessage(EditorID(e));
     SpidString(e, 'EDID', 'EDID');
     SpidString(e, 'FULL', 'Full name');
-    //// Not exported anymore because it can be troublesome for autocompleting
+    AddMessage(GetElementEditValues(e, 'FULL'));
+    //// Not exported anymore because it generates too mutch duplicated entries
     // SpidString(e, 'SHRT', 'Short name');  NOT
+
+    AddSpidForm(LinksTo(ElementByPath(e, 'RNAM')), 'Race');
+    AddSpidForm(LinksTo(ElementByPath(e, 'CNAM')), 'Class');
+    AddSpidForm(LinksTo(ElementByPath(e, 'CRIF')), 'Faction');
+    AddSpidForm(LinksTo(ElementByPath(e, 'ZNAM')), 'Combat style');
+    AddSpidForm(LinksTo(ElementByPath(e, 'VTCK')), 'Voice type');
+    
+    factions := ElementByPath(e, 'Factions');
+
+    for i := 0 to ElementCount(factions) - 1 do begin
+        faction := ElementByIndex(factions, i);
+        faction := ElementByIndex(faction, 0); // Factions have a weird structure
+        AddSpidForm(LinksTo(faction), 'Faction');
+    end;
 end;
 
 ///////////////////////////////////////////////////////////////////////
 // Race
 ///////////////////////////////////////////////////////////////////////
 procedure AddSpidRace(e: IInterface);
-var 
-    full, short: string;
-    iRace: IInterface;
 begin
     if not HasKeyword(e, 'ActorTypeNPC') then Exit;
+    AddSpidForm(e, 'Race');
+end;
 
-    AddMessage(EditorID(e));
-    SpidForm(e);
+///////////////////////////////////////////////////////////////////////
+// FormList
+///////////////////////////////////////////////////////////////////////
+procedure AddSpidFormList(e: IInterface);
+var
+  item, items: IInterface;
+begin
+  items := ElementByPath(e, 'FormIDs');
+  item := LinksTo(ElementByIndex(items, 0));
+  if((Signature(item) <> 'NPC_') or (not IsValidNPC(item))) then Exit;
+  AddSpidForm(e, 'FormID list');
+end;
+
+///////////////////////////////////////////////////////////////////////
+// FormList
+///////////////////////////////////////////////////////////////////////
+procedure AddSpidCellNPC(e: IInterface);
+var
+    npc: IInterface;
+begin
+    npc := LinksTo(ElementByPath(e, 'NAME'));
+    if not IsValidNPC(npc) then Exit;
+    AddSpidForm(e, 'NPC ref');
+    AddSpidNPC(npc);
 end;
 
 ///////////////////////////////////////////////////////////////////////
@@ -228,17 +281,14 @@ begin
     else if s= 'OTFT' then AddOutfit(e)
     else if s= 'KYWD' then AddKeyword(e)
     else if s= 'NPC_' then AddSpidNPC(e)
-    else if s= 'RACE' then AddSpidRace(e);
-
-// Faction
-// Class
-// CombatStyle
-// Outfit
-// NPC
-// Spell
-// VoiceType
-// FormList
-// Editor Location    
+    else if s= 'RACE' then AddSpidRace(e)
+    else if s= 'CLAS' then AddSpidForm(e, 'Class')
+    else if s= 'FACT' then AddSpidForm(e, 'Faction')
+    else if s= 'CSTY' then AddSpidForm(e, 'Combat style')
+    else if s= 'VTYP' then AddSpidForm(e, 'Voice type')
+    else if s= 'LCTN' then AddSpidForm(e, 'Location')
+    else if s= 'FLST' then AddSpidFormList(e)
+    else if s= 'ACHR' then AddSpidCellNPC(e);
 end;
 
 procedure SaveFile(const contents: TStringList; filename: string);
