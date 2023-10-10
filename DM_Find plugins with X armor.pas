@@ -1,4 +1,4 @@
-unit Find_X_Armor;
+unit DM_Find_X_Armor;
 
 interface
 
@@ -7,8 +7,8 @@ uses xEditApi;
 implementation
 
 const
-  armorToFind = 'Light Armor';
-  // armorToFind = 'Heavy Armor';
+  // armorToFind = 'Light Armor';
+  armorToFind = 'Heavy Armor';
 
 function IsXArmor(e: IInterface): Boolean;
 begin
