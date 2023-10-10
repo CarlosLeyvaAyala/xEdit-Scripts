@@ -54,7 +54,7 @@ begin
   Result := 0;
 
   try
-    frm.Caption := 'Convert to armor type';
+    frm.Caption := 'Search for armor type';
     frm.Position := poScreenCenter;
     frm.BorderStyle := bsDialog;
     frm.Height := 290;
@@ -117,6 +117,8 @@ begin
     end;
   end;
 
+  AddMessage(#13#10);
+  AddMessage(Format('Finished searching for armor type: %s', [armorToFind]));
   AddMessage(#13#10#13#10);
 end;
 
