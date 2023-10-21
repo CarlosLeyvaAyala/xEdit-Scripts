@@ -16,11 +16,11 @@ var
   
   // Processing regex:
   //    (\w+),?
-  arHead, arHands, arLegs, arBody: TList;
+  arHead, arHands, arLegs, arBody, arUnknown: TList;
   nHead, nHands, nLegs, nBody: Byte;
 
 const
-  desiredAR = 130;
+  desiredAR = 35;
   // Made to deal with strange InputQuery behavior
   cancelStr = '***ThIsF0rMw4SCaNcEL1eD!!111***'; 
 
@@ -75,7 +75,10 @@ const
   hvLegsMult = 0.17;
 
   // Predefined vanilla armor ratings
-  arLtLeather = 52
+  arLtLeather = 52;
+  arLtGuard = 46;
+  arLtDragonscale = 82;
+  arHvDaedric = 108;
 
 // Asks the user to input a value. Made to deal with InputQuery bullshit behavior.
 function PromptQuery(ACaption, APrompt: string): string;
@@ -101,6 +104,7 @@ begin
     arHands := TList.Create;
     arLegs := TList.Create;
     arBody := TList.Create;
+    arUnknown := TList.Create;
 end;
 
 procedure ObjFree;
@@ -109,6 +113,7 @@ begin
     arHands.Free;
     arLegs.Free;
     arBody.Free;
+    arUnknown.Free;
 end;
 
 function GetArmorRating(e: IInterface): Integer;
@@ -214,55 +219,82 @@ begin
         arLegs.Add(e);
         Exit;
     end;
+
+    arUnknown.Add(e);
 end;
 
 procedure SetRating(ltMult, hvMult: Real; list: TList);
 var
   i, AR: Integer;
 begin
-    AR := Round(totalAR * ltMult);
+    if list.count = 0 then Exit;
+
+    AR := Round(totalAR * ltMult) div list.count;
     for i := 0 to list.count - 1 do 
         SetArmorRating(ObjectToElement(list[i]), AR, '');
 end;
 
 procedure SetBodyRating;
-// var
-//   i, AR: Integer;
 begin
     SetRating(ltBodyMult, hvBodyMult, arBody);
-//   AR := Round(totalAR * ltBodyMult);
-//   for i := 0 to nBody - 1 do 
-//     SetArmorRating(arBody[i], AR, '');
 end;
 
 procedure SetHeadRating;
-// var
-//   i, AR: Integer;
 begin
     SetRating(ltHeadMult, hvHeadMult, arHead);
-//   AR := Round(totalAR * ltHeadMult);
-//   for i := 0 to nHead - 1 do 
-//     SetArmorRating(arHead[i], AR, '');
 end;
 
 procedure SetLegsRating;
-// var
-//   i, AR: Integer;
 begin
     SetRating(ltLegsMult, hvLegsMult, arLegs);
-//   AR := Round(totalAR * ltLegsMult);
-//   for i := 0 to nLegs - 1 do 
-//     SetArmorRating(arLegs[i], AR, '');
 end;
 
 procedure SetHandRating;
-// var
-//   i, AR: Integer;
 begin
-    SetRating(ltHandsMult, hvHandsMult, arHands);
-//   AR := Round(totalAR * ltHandMult);
-//   for i := 0 to nHands - 1 do 
-//     SetArmorRating(arHands[i], AR, '');
+    SetRating(ltHandMult, hvHandMult, arHands);
+end;
+
+procedure SetUnknownRating;
+begin
+    SetRating(0, 0, arUnknown);
+end;
+
+procedure JoinLists(source, dest: TList);
+var 
+    i: Integer;
+begin
+    for i := 0 to source.count - 1 do 
+        dest.Add(source[i]);
+end;
+
+procedure DivvyRemaining;
+var 
+    i, sumAR, divvy, currAR: Integer;
+    allArmors: TList;
+    armor: IInterface;
+begin
+    allArmors := TList.Create;
+    try
+        JoinLists(arBody, allArmors);
+        JoinLists(arHead, allArmors);
+        JoinLists(arHands, allArmors);
+        JoinLists(arLegs, allArmors);
+        JoinLists(arUnknown, allArmors);
+
+        sumAR := 0;
+        for i := 0 to allArmors.count - 1 do begin
+            sumAR := sumAR + GetArmorRating(ObjectToElement(allArmors[i]));
+        end;
+
+        divvy := (totalAR - sumAR) div allArmors.count;
+        for i := 0 to allArmors.count - 1 do begin
+            armor := ObjectToElement(allArmors[i]);
+            currAR := GetArmorRating(armor);
+            SetArmorRating(armor, currAR + divvy, 'when correcting on last pass');
+        end;
+    finally
+        allArmors.Free;
+    end;
 end;
 
 function Initialize: Integer;
@@ -286,6 +318,8 @@ begin
     SetHeadRating;
     SetLegsRating;
     SetHandRating;
+    SetUnknownRating;
+    DivvyRemaining;
     ObjFree;
 end;
 
