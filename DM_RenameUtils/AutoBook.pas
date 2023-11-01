@@ -1,5 +1,5 @@
 unit AutoBook;
-uses xEditApi;
+uses xEditApi, 'AutoSpell';
 
 // Get all spell data. This is the heart of this functionality.
 function _GetSpellbookData(aBook: IInterface): TStringList;

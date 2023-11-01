@@ -5,16 +5,19 @@ begin
   Result := TStringList.Create;
   Result.Add('Sword');
   Result.Add('Staff');
+  Result.Add('Dagger');
   Result.Add('War Axe');
   Result.Add('Waraxe');
+  Result.Add('Warhammer');
+  Result.Add('Mace');
   Result.Add('Greatsword');
   Result.Add('Battleaxe');
   Result.Add('Bow');
   Result.Add('Axe');
 end;
 
-// Cleans everything after 'Sword of', 'Staff of'...
-function _GetMagWeapSimpleName(aWeap: IInterface): string;
+// Removes certain words from the name
+function _GetWeapSimpleName(aWeap: IInterface; cleaningFmt: string): string;
 var
   i: Integer;
   toClean: TStringList;
@@ -27,7 +30,7 @@ begin
     toClean := _GetCleanableWeapWords;
     for i := 0 to toClean.Count -1 do begin
       // Cleans everything after the found word
-      r.RegEx := Format('(%s of.*)', [ toClean[i] ]);
+      r.RegEx := Format(cleaningFmt, [ toClean[i] ]);
       r.Subject := Result;
       r.Replacement := '';
       r.ReplaceAll;
@@ -47,8 +50,6 @@ end;
 
 function _GetMagicWeaponData(aWeap: IInterface): TStringList;
 var
-//   lvl: Integer;
-//   school, minLvl: string;
   enchant: IInterface;
 begin
   Result := CreateSortedList;
@@ -56,9 +57,28 @@ begin
     // Find raw values
     AddName(Result, aWeap);
     AddEdid(Result, aWeap);
-    AddTag(Result, '[WeapSimpleName]', _GetMagWeapSimpleName(aWeap));
+    // Cleans everything after 'Sword of', 'Staff of'...
+    AddTag(Result, '[WeapSimpleName]', _GetWeapSimpleName(aWeap, '(%s of.*)'));
     AddTag(Result, '[WeaponType]', HasKeywordContaining(aWeap, 'WeapType'));
     GetEnchantmentData(LinksTo(ElementBySignature(aWeap, 'EITM')), Result);
+    Result := ReplaceTags(Result);
+  except
+    on E: Exception do begin
+      Result.Free;
+      raise e;
+    end;
+  end;
+end;
+
+function _GetWeaponData(aWeap: IInterface): TStringList;
+begin
+  Result := CreateSortedList;
+  try
+    // Find raw values
+    AddName(Result, aWeap);
+    AddEdid(Result, aWeap);
+    AddTag(Result, '[WeapSimpleName]', _GetWeapSimpleName(aWeap, '(%s)'));
+    AddTag(Result, '[WeaponType]', HasKeywordContaining(aWeap, 'WeapType'));
     Result := ReplaceTags(Result);
   except
     on E: Exception do begin
@@ -75,7 +95,8 @@ begin
   if Assigned(ElementBySignature(aWeap, 'EITM')) then
     Result := GenerateName('WeaponMagical', _GetMagicWeaponData(aWeap) )
   else
-    Result := GetElementEditValues(aWeap, 'FULL');
+    Result := GenerateName('Weapon', _GetWeaponData(aWeap));
+    // Result := GetElementEditValues(aWeap, 'FULL');
 end;
 
 end.
