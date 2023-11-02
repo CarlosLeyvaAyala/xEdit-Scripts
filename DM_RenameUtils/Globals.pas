@@ -3,6 +3,7 @@ unit Globals;
 var
     cfgNames: TStringList;
     cfgFormats: TStringList;
+    cleanWeapon: TStringList;
     // Queue for auto processing things at a later time. 
     // For example, when auto renaming spell books, their respective spells get renamed too.
     autoRenameQueue: TList;
@@ -53,6 +54,8 @@ begin
     cfgNames.LoadFromFile(ScriptsPath + 'DM_RenameUtils\_Names.txt');
     cfgFormats := TStringList.Create;
     cfgFormats.LoadFromFile(ScriptsPath + 'DM_RenameUtils\_Formats.txt');
+    cleanWeapon := TStringList.Create;
+    cleanWeapon.LoadFromFile(ScriptsPath + 'DM_RenameUtils\_Clean_Weapon.txt');
     autoRenameQueue := TList.Create;
 end;
 
@@ -61,6 +64,7 @@ procedure Auto_UnloadConfig;
 begin
     cfgNames.Free;
     cfgFormats.Free;
+    cleanWeapon.Free;
     autoRenameQueue.Free;
 end;
 

@@ -1,0 +1,12 @@
+Sword
+Staff
+Dagger
+War Axe
+Waraxe
+Warhammer
+Mace
+Greatsword
+Battleaxe
+Battle Axe
+Bow
+Axe

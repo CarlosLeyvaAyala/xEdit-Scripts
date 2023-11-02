@@ -1,49 +1,22 @@
 unit AutoWeapon;
 
-function _GetCleanableWeapWords: TStringList;
-begin
-  Result := TStringList.Create;
-  Result.Add('Sword');
-  Result.Add('Staff');
-  Result.Add('Dagger');
-  Result.Add('War Axe');
-  Result.Add('Waraxe');
-  Result.Add('Warhammer');
-  Result.Add('Mace');
-  Result.Add('Greatsword');
-  Result.Add('Battleaxe');
-  Result.Add('Bow');
-  Result.Add('Axe');
-end;
-
 // Removes certain words from the name
-function _GetSimpleName(weaponName, cleaningFmt: string): string;
+function _GetSimpleName(weaponName: string): string;
 var
   i: Integer;
-  toClean: TStringList;
-  r: TPerlRegex;
 begin
-  Result := weaponName;
-  r := TPerlRegex.Create;
-  try
-    toClean := _GetCleanableWeapWords;
-    for i := 0 to toClean.Count -1 do begin
-      // Cleans everything after the found word
-      r.RegEx := Format(cleaningFmt, [ toClean[i] ]);
-      r.Subject := Result;
-      r.Replacement := '';
-      r.ReplaceAll;
-      Result := Trim(r.Subject);
-    end;
-  finally
-    r.Free;
-    toClean.Free;
-  end;
+    Result := weaponName;
+
+    for i := 0 to cleanWeapon.Count - 1 do 
+        Result := StringReplace(Result, cleanWeapon[i], '', [rfReplaceAll]);
+
+    Result := Trim(Result);
 end;
 
-function _GetWeapSimpleName(aWeap: IInterface; cleaningFmt: string): string;
+function _GetWeapSimpleName(aWeap: IInterface): string;
 begin
-  Result := _GetSimpleName(GetElementEditValues(MasterOrSelf(aWeap), 'FULL'), cleaningFmt);
+    aWeap := MasterOrSelf(aWeap);
+    Result := _GetSimpleName( GetElementEditValues(aWeap, 'FULL') );
 end;
 
 procedure GetEnchantmentData(aEnchant: IInterface; aData: TStringList);
@@ -75,7 +48,7 @@ var
 begin
   weapName := GetElementEditValues(MasterOrSelf(aWeap), 'FULL');
   Result := RegexReplace(weapName, ' of .*$', ''); // Clean enchantment name
-  Result := _GetSimpleName(Result, '(%s)');
+  Result := _GetSimpleName(Result);
 end;
 
 function _GetMagicWeaponData(aWeap: IInterface): TStringList;
@@ -108,7 +81,7 @@ begin
     // Find raw values
     AddName(Result, aWeap);
     AddEdid(Result, aWeap);
-    AddTag(Result, '[WeapSimpleName]', _GetWeapSimpleName(aWeap, '(%s)'));
+    AddTag(Result, '[WeapSimpleName]', _GetWeapSimpleName(aWeap));
     AddTag(Result, '[WeaponType]', HasKeywordContaining(aWeap, 'WeapType'));
     Result := ReplaceTags(Result);
   except
