@@ -10,3 +10,7 @@ Battleaxe
 Battle Axe
 Bow
 Axe
+Sanctified
+Reverent
+Hallowed
+Virtuous

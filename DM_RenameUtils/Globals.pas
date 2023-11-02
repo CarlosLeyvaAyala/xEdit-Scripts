@@ -106,4 +106,22 @@ begin
   end;
 end;
 
+// Extract string using a regular expression.
+function RegexMatch(subject, regex: string; groupToExtract: Integer): string;
+var
+  r: TPerlRegex;
+begin
+  r := TPerlRegex.Create;
+  try
+    r.RegEx := regex;
+    r.Subject := subject;
+    if r.Match then 
+        Result := r.Groups[groupToExtract]
+    else
+        Result := '';
+  finally
+    r.Free;
+  end;
+end;
+
 end.

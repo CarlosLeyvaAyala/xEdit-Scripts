@@ -13,7 +13,7 @@ begin
     Result := Trim(Result);
 end;
 
-function _GetWeapSimpleName(aWeap: IInterface): string;
+function _GetWeaponShortName(aWeap: IInterface): string;
 begin
     aWeap := MasterOrSelf(aWeap);
     Result := _GetSimpleName( GetElementEditValues(aWeap, 'FULL') );
@@ -27,28 +27,28 @@ end;
 
 function _GetMagicWeaponLvl(aWeap: IInterface): Integer;
 var
-  r: TPerlRegex;
+    r: string;
 begin
-  r := TPerlRegex.Create;
-  try
-    r.RegEx := '(\d+$)';
-    r.Subject := EditorID(aWeap);
-    if r.Match then 
-        Result := StrToInt(r.Groups[1])
-    else
-        Result := 0;
-  finally
-    r.Free;
-  end;
+    r := RegexMatch(EditorID(aWeap), '(\d+$)', 1);
+    if r <> '' then Result := StrToInt(r)
+    else Result := 0;
 end;
 
-function _GetMagicWeaponSimpleName(aWeap: IInterface): string;
+function _GetMagicWeaponShortName(aWeap: IInterface): string;
 var 
   weapName: string;
 begin
   weapName := GetElementEditValues(MasterOrSelf(aWeap), 'FULL');
   Result := RegexReplace(weapName, ' of .*$', ''); // Clean enchantment name
   Result := _GetSimpleName(Result);
+end;
+
+function _GetMagicWeaponUniqueName(aWeap: IInterface): string;
+var 
+  weapName: string;
+begin
+  weapName := GetElementEditValues(MasterOrSelf(aWeap), 'FULL');
+  Result := RegexMatch(weapName, '.* of (.*)$', 1); 
 end;
 
 function _GetMagicWeaponData(aWeap: IInterface): TStringList;
@@ -61,7 +61,8 @@ begin
     AddName(Result, aWeap);
     AddEdid(Result, aWeap);
     // Cleans everything after 'Sword of', 'Staff of'...
-    AddTag(Result, '[WeapSimpleName]', _GetMagicWeaponSimpleName(aWeap));
+    AddTag(Result, '[WeaponShortName]', _GetMagicWeaponShortName(aWeap));
+    AddTag(Result, '[MagicWeaponUniqueName]', _GetMagicWeaponUniqueName(aWeap));
     AddTag(Result, '[WeaponType]', HasKeywordContaining(aWeap, 'WeapType'));
     AddTag(Result, '[WeaponLvlNum]', Format('[WeaponLvlNum%d]', [_GetMagicWeaponLvl(aWeap)]));
     GetEnchantmentData(LinksTo(ElementBySignature(aWeap, 'EITM')), Result);
@@ -81,7 +82,7 @@ begin
     // Find raw values
     AddName(Result, aWeap);
     AddEdid(Result, aWeap);
-    AddTag(Result, '[WeapSimpleName]', _GetWeapSimpleName(aWeap));
+    AddTag(Result, '[WeaponShortName]', _GetWeaponShortName(aWeap));
     AddTag(Result, '[WeaponType]', HasKeywordContaining(aWeap, 'WeapType'));
     Result := ReplaceTags(Result);
   except

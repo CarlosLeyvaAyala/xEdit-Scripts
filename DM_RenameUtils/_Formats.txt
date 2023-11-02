@@ -1,4 +1,9 @@
 Spell=[SpellSchool] [SpellLvlNum]: [OriginalName]
 Spellbook=Tome, [Spell]
-WeaponMagical=[WeaponType]: [WeapSimpleName] - [EnchantName] [WeaponLvlNum]
-Weapon=[WeaponType]: [WeapSimpleName]
+Weapon=[WeaponType]: [WeaponShortName]
+
+# Enchanted weapons may come in many different variants
+WeaponMagical=[WeaponType]: [WeaponShortName] - [EnchantName] [WeaponLvlNum]
+-WeaponMagical=[WeaponType]: [WeaponShortName] - [EnchantName] [SpellLvlNum]
+-WeaponMagical=[WeaponType] * [MagicWeaponUniqueName]
+-WeaponMagical=[WeaponType]: [EnchantName] [WeaponLvlNum]
