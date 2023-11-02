@@ -50,9 +50,9 @@ end;
 procedure Auto_LoadConfig;
 begin
     cfgNames := TStringList.Create;
-    cfgNames.LoadFromFile(ScriptsPath + 'DM_RenameUtils\_Names.ini');
+    cfgNames.LoadFromFile(ScriptsPath + 'DM_RenameUtils\_Names.txt');
     cfgFormats := TStringList.Create;
-    cfgFormats.LoadFromFile(ScriptsPath + 'DM_RenameUtils\_Formats.ini');
+    cfgFormats.LoadFromFile(ScriptsPath + 'DM_RenameUtils\_Formats.txt');
     autoRenameQueue := TList.Create;
 end;
 

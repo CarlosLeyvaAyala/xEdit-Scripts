@@ -6,12 +6,15 @@
 - [Auto processing](#auto-processing)
   - [About format identifiers](#about-format-identifiers)
   - [About tags](#about-tags)
-- [The `_Names.ini` file](#the-_namesini-file)
+- [The `_Names.txt` file](#the-_namestxt-file)
 - [List of format identifiers](#list-of-format-identifiers)
     - [Leyends](#leyends)
   - [\*All](#all)
   - [Spell](#spell)
+      - [Usage example](#usage-example)
   - [Spellbook](#spellbook)
+      - [Usage example](#usage-example-1)
+  - [WeaponMagical](#weaponmagical)
 
 <!-- /code_chunk_output -->
 
@@ -59,12 +62,12 @@ If you think about it, books don't get classified as `Light/Heavy/Clothing`, but
 
 See examples below to understand all of this.
 
-# The `_Names.ini` file
+# The `_Names.txt` file
 Here are defined tags that will be replaced by whatever you want.
 It's just another layer of customization.
 
 Let's suppose this script has found some spell belongs to the school of Alteration.
-By default, the `[SpellSchool]` tag would output `Alt` because that's how it was defined in `_Names.ini` by me.
+By default, the `[SpellSchool]` tag would output `Alt` because that's how it was defined in `_Names.txt` by me.
 If you would open that file and change it to:
 
 ```
@@ -76,7 +79,7 @@ Then the `[SpellSchool]` tag would output `Alteration, motherfucker! Do you spea
 Tags using this functionality are marked as *Translated*.
 
 # List of format identifiers
-All examples were made using default values defined in [_Names.ini](the-_namesini-file), using this actual script.
+All examples were made using default values defined in [_Names.txt](the-_namesini-file), using this actual script.
 
 ### Leyends
 - [x] This tag has been fully implemented.
@@ -143,7 +146,7 @@ Format|Original|Processed
 ## WeaponMagical
 - [ ] [EnchantName]
 
-*[Translated]: This value is automatically translated from whatever you defined in `_Names.ini`.
+*[Translated]: This value is automatically translated from whatever you defined in `_Names.txt`.
 *[Winning ESP]: Values are taken from the winning esp instead of the currently selected. Thus, making renaming compatible with patches already present in your load order.
 *[Current ESP]: Values are strictly gotten from the esp the script is run on.
 *[Master ESP]: Values are strictly gotten from the first esp that creates this record.

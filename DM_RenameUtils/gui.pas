@@ -7,10 +7,10 @@ const
   cancelStr = '***ThIsF0rMw4SCaNcEL1eD!!111***';  // Made to deal with strange InputQuery behavior
 
   // UI constants
-  btnW = 119;
-  btnH = 32;
+  btnW = 160;
+  btnH = 42;
   ctrlDX = 24;
-  ctrlDY = 8;
+  ctrlDY = 10;
   bigDY = 24;
 
 var
@@ -272,8 +272,6 @@ var
   grpMove, grpTrim, grpFile, grpSemi: TGroupBox;
   chkDebug, chkExtDebugInfo, chkGetAllArmoType: TCheckBox;
 const
-  // bigDY = 24;
-
   btnL = 24;
   btnT = 30;
   btnDY = 6;
@@ -358,6 +356,7 @@ begin
     grpTrim := CreateGroupbx(frm);
     grpTrim.Caption := 'Trim';
     _Below(grpTrim, grpMove);
+    _MoveBy(grpTrim, 0, ctrlDY * 2);
 
     btnTrimFront := CreateButton(grpTrim);
     btnTrimFront.Caption := 'Front';
@@ -380,6 +379,7 @@ begin
     grpFile := CreateGroupbx(frm);
     grpFile.Caption := 'File operations';
     _Below(grpFile, grpTrim);
+    _MoveBy(grpFile, 0, ctrlDY * 2);
 
     btnFExport := CreateButton(grpFile);
     btnFExport.Caption := 'Export';
@@ -397,6 +397,7 @@ begin
     grpSemi := CreateGroupbx(frm);
     grpSemi.Caption := 'Semi-automatic operations';
     _Below(grpSemi, grpFile);
+    _MoveBy(grpSemi, 0, ctrlDY * 2);
 
     btnRestore := CreateButton(grpSemi);
     btnRestore.Caption := 'Re&store';
@@ -429,7 +430,7 @@ begin
     /////////////////////////////////////////
 
     chkDebug := _CreateCheckbox(frm, gDebugMode);
-    chkDebug.Caption := '&Don'#39't apply changes';
+    chkDebug.Caption := '&Don'#39't apply';
     chkDebug.Hint := 'Shows you the output of your operation, but doesn'#39't actually make changes on your file. Useful for testing purposes.';
     _Below(chkDebug, btnDiagnose);
     _MoveBy(chkDebug, 0, bigDY * 2);
@@ -438,6 +439,7 @@ begin
     chkExtDebugInfo.Caption := 'Ext. Info';
     chkExtDebugInfo.Hint := 'Writes more info to xEdit Messages. Use if you aren''t getting what you wanted.';
     _Below(chkExtDebugInfo, chkDebug);
+    _MoveBy(chkExtDebugInfo, 0, Round(-ctrlDY * 3/2));
 
     btnExit := CreateButton(frm);
     btnExit.Caption := 'Exit';

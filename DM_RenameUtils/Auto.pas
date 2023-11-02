@@ -105,7 +105,7 @@ begin
 end;
 
 // Substitutes tags found for some record to the names the user actually wants.
-// Names are defined in _Names.ini
+// Names are defined in _Names.txt
 function ReplaceTags(aList: TStringList): TStringList;
 var
     i: Integer;
