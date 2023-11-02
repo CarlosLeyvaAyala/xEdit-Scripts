@@ -3,7 +3,9 @@ Spellbook=Tome, [Spell]
 Weapon=[WeaponType]: [WeaponShortName]
 
 # Enchanted weapons may come in many different variants
-WeaponMagical=[WeaponType]: [WeaponShortName] - [EnchantName] [WeaponLvlNum]
+WeaponMagical=[WeaponType]: [WeaponShortName] - [EnchantName] [EdidLvl]
 -WeaponMagical=[WeaponType]: [WeaponShortName] - [EnchantName] [SpellLvlNum]
 -WeaponMagical=[WeaponType] * [MagicWeaponUniqueName]
--WeaponMagical=[WeaponType]: [EnchantName] [WeaponLvlNum]
+-WeaponMagical=[WeaponType]: [EnchantName] [EdidLvl]
+
+Potion=[IngestibleUniqueName] [EdidLvl]

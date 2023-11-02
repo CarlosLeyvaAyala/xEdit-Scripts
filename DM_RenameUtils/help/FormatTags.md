@@ -10,9 +10,14 @@
     - [Leyends](#leyends)
   - [\*All](#all)
   - [Spell](#spell)
+      - [Usage example](#usage-example)
   - [Spellbook](#spellbook)
+      - [Usage example](#usage-example-1)
   - [Weapon](#weapon)
+      - [WeaponShortName](#weaponshortname)
   - [WeaponMagical](#weaponmagical)
+      - [WeaponShortName](#weaponshortname-1)
+      - [Usage example](#usage-example-2)
 
 <!-- /code_chunk_output -->
 
@@ -195,7 +200,7 @@ Master ESP tags:
 
 Current ESP tags:
 
-- [x] **[WeaponLvlNum]** Enchantment level gotten from the Editor ID of the weapon; specifically, the ending number in it, like the **`01`** in `EnchShSteelTridentSpearSoulTrap01`.
+- [x] **[EdidLvl]** Level gotten from the Editor ID of the weapon; specifically, the ending number in it, like the **`01`** in `EnchShSteelTridentSpearSoulTrap01`.
       Depending on the weapon, sometimes it's better to use **[SpellLvlNum]**. _Translated_.
 
 Winning ESP tags:
@@ -222,7 +227,7 @@ Notice how in the last example `[WeaponShortName]` returns nothing because "Wara
 
 | Format                                                                         | Editor ID                           | Original                                | Processed                                     |
 | ------------------------------------------------------------------------------ | ----------------------------------- | --------------------------------------- | --------------------------------------------- |
-| `WeaponMagical=[WeaponType]: [WeaponShortName] - [EnchantName] [WeaponLvlNum]` | \_SRE_EnchHonedSwordDunmer03        | Honed Ancient Nord Sword of Dunmer Bane | Sword: Honed Ancient Nord - Dunmer Killer III |
+| `WeaponMagical=[WeaponType]: [WeaponShortName] - [EnchantName] [EdidLvl]` | \_SRE_EnchHonedSwordDunmer03        | Honed Ancient Nord Sword of Dunmer Bane | Sword: Honed Ancient Nord - Dunmer Killer III |
 | `WeaponMagical=[WeaponType]: [WeaponShortName] - [EnchantName] [SpellLvlNum]`  | \_SRE_EnchHonedSwordDunmer03        | Honed Ancient Nord Sword of Dunmer Bane | Sword: Honed Ancient Nord - Dunmer Killer I   |
 | `WeaponMagical=[MagicWeaponUniqueName] [WeaponType] of [SpellSchool]`          | \_SRE_EnchForswornSwordAbsorbSoul01 | Sword of Lost Souls                     | Lost Souls Sword of Destruction               |
 

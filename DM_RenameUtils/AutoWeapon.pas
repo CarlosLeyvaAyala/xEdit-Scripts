@@ -25,15 +25,6 @@ begin
   GetMgFxData(LinksTo(ElementByPath(aEnchant, 'Effects\Effect #0\EFID')), aData);
 end;
 
-function _GetMagicWeaponLvl(aWeap: IInterface): Integer;
-var
-    r: string;
-begin
-    r := RegexMatch(EditorID(aWeap), '(\d+$)', 1);
-    if r <> '' then Result := StrToInt(r)
-    else Result := 0;
-end;
-
 function _GetMagicWeaponShortName(aWeap: IInterface): string;
 var 
   weapName: string;
@@ -43,13 +34,13 @@ begin
   Result := _GetSimpleName(Result);
 end;
 
-function _GetMagicWeaponUniqueName(aWeap: IInterface): string;
-var 
-  weapName: string;
-begin
-  weapName := GetElementEditValues(MasterOrSelf(aWeap), 'FULL');
-  Result := RegexMatch(weapName, '.* of (.*)$', 1); 
-end;
+// function _GetMagicWeaponUniqueName(aWeap: IInterface): string;
+// var 
+//   weapName: string;
+// begin
+//   weapName := GetElementEditValues(MasterOrSelf(aWeap), 'FULL');
+//   Result := RegexMatch(weapName, '.* of (.*)$', 1); 
+// end;
 
 function _GetMagicWeaponData(aWeap: IInterface): TStringList;
 var
@@ -60,13 +51,13 @@ begin
     // Find raw values
     AddName(Result, aWeap);
     AddEdid(Result, aWeap);
+    AddEdidLvl(Result, aWeap);
+
     // Cleans everything after 'Sword of', 'Staff of'...
     AddTag(Result, '[WeaponShortName]', _GetMagicWeaponShortName(aWeap));
-    AddTag(Result, '[MagicWeaponUniqueName]', _GetMagicWeaponUniqueName(aWeap));
+    AddTag(Result, '[MagicWeaponUniqueName]', _GetUniqueName(aWeap));
     AddTag(Result, '[WeaponType]', HasKeywordContaining(aWeap, 'WeapType'));
-    AddTag(Result, '[WeaponLvlNum]', Format('[WeaponLvlNum%d]', [_GetMagicWeaponLvl(aWeap)]));
     GetEnchantmentData(LinksTo(ElementBySignature(aWeap, 'EITM')), Result);
-    Result := ReplaceTags(Result);
   except
     on E: Exception do begin
       Result.Free;
@@ -84,7 +75,6 @@ begin
     AddEdid(Result, aWeap);
     AddTag(Result, '[WeaponShortName]', _GetWeaponShortName(aWeap));
     AddTag(Result, '[WeaponType]', HasKeywordContaining(aWeap, 'WeapType'));
-    Result := ReplaceTags(Result);
   except
     on E: Exception do begin
       Result.Free;

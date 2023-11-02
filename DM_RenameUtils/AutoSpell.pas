@@ -59,7 +59,6 @@ begin
         AddName(Result, aSpell);
         AddEdid(Result, aSpell);
         _GetSpellMgFxData(aSpell, Result);
-        Result := ReplaceTags(Result);
     except
         on E: Exception do begin
             Result.Free;

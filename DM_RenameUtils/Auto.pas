@@ -1,6 +1,6 @@
 unit Auto;
-uses xEditApi, 'DM_RenameUtils\AutoSpell',
-'DM_RenameUtils\AutoBook', 'DM_RenameUtils\AutoWeapon';
+uses xEditApi, 'DM_RenameUtils\AutoSpell', 'DM_RenameUtils\AutoBook', 'DM_RenameUtils\AutoWeapon', 
+'DM_RenameUtils\AutoIngestible';
 
 const
     iHOverride = $FFFF;     // Maximum record override to search for. This is way bigger than the maximum SSE supports.
@@ -43,6 +43,21 @@ begin
     AddTag(aList, tagEdid, GetElementEditValues(e, 'EDID'));
 end;
 
+function GetLvlFromEdid(e: IInterface): Integer;
+var
+    r: string;
+begin
+    r := RegexMatch(EditorID(e), '(\d+$)', 1);
+    if r <> '' then Result := StrToInt(r)
+    else Result := 0;
+end;
+
+// Adds the tag '[EdidLvl]=Lvl' to a tag list
+procedure AddEdidLvl(aList: TStringList; e: IInterface);
+begin
+    AddTag(aList, '[EdidLvl]', Format('[EdidLvl%d]', [GetLvlFromEdid(e)]));
+end;
+
 // Logs an unnamed record
 procedure _LogUnnamed(aData: TStringList);
 var
@@ -70,6 +85,8 @@ var
     i: Integer;
     originalName, fmt: string;
 begin
+    aData := ReplaceTags(aData);
+    
     originalName := ValueFromName(aData, '[OriginalName]');
 
     // Probably not "optimum" to do this check so late, but quite convenient
@@ -102,6 +119,7 @@ begin
     end;
 
     LogExtDebug(nl + 'End result:'+ nl + Result + nl);
+    aData.Free;
 end;
 
 // Substitutes tags found for some record to the names the user actually wants.
@@ -144,10 +162,21 @@ begin
         Result := GetBookName(e)
     else if sig = 'WEAP' then
         Result := GetWeaponName(e)
+    else if sig = 'ALCH' then
+        Result := GetIngestibleName(e)
     else begin
         Result := GetElementEditValues(e, 'FULL');
         AddMessage(sig + ' auto renaming still not supported');
     end;
+end;
+
+// Gets all the text after "of " from an item
+function _GetUniqueName(e: IInterface): string;
+var 
+  n: string;
+begin
+  n := GetElementEditValues(MasterOrSelf(e), 'FULL');
+  Result := RegexMatch(n, '.* of (.*)$', 1); 
 end;
 
 procedure ReplaceTagName(aTags: TStringList; aOldTag, aNewTag: string);
