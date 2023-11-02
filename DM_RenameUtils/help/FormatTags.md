@@ -181,6 +181,11 @@ As you can notice, there are some variants of the same word I've found while ren
 
 If you find some inconsistent names like those while renaming your mods, you can add them to `_Clean_Weapon.txt` so your weapons are properly renamed.
 
+***THIS IS NOT AN ALPHABETICALLY SORTED LIST***. If you sort it, you can get unexpected results.
+
+Words in this list will be removed by their order of appearance.
+In general, try to add longer words first and shorter words later (notice `Axe` location compared to `Battle Axe` and `War Axe`).
+
 ## WeaponMagical
 
 Master ESP tags:
@@ -215,11 +220,11 @@ Notice how in the last example `[WeaponShortName]` returns nothing because "Wara
 
 #### Usage example
 
-| Format                                                                         | Original                                | Editor ID                           | Processed                                     |
-| ------------------------------------------------------------------------------ | --------------------------------------- | ----------------------------------- | --------------------------------------------- |
-| `WeaponMagical=[WeaponType]: [WeaponShortName] - [EnchantName] [WeaponLvlNum]` | Honed Ancient Nord Sword of Dunmer Bane | \_SRE_EnchHonedSwordDunmer03        | Sword: Honed Ancient Nord - Dunmer Killer III |
-| `WeaponMagical=[WeaponType]: [WeaponShortName] - [EnchantName] [SpellLvlNum]`  | Honed Ancient Nord Sword of Dunmer Bane | \_SRE_EnchHonedSwordDunmer03        | Sword: Honed Ancient Nord - Dunmer Killer I   |
-| `WeaponMagical=[MagicWeaponUniqueName] [WeaponType] of [SpellSchool]`          | Sword of Lost Souls                     | \_SRE_EnchForswornSwordAbsorbSoul01 | Lost Souls Sword of Destruction               |
+| Format                                                                         | Editor ID                           | Original                                | Processed                                     |
+| ------------------------------------------------------------------------------ | ----------------------------------- | --------------------------------------- | --------------------------------------------- |
+| `WeaponMagical=[WeaponType]: [WeaponShortName] - [EnchantName] [WeaponLvlNum]` | \_SRE_EnchHonedSwordDunmer03        | Honed Ancient Nord Sword of Dunmer Bane | Sword: Honed Ancient Nord - Dunmer Killer III |
+| `WeaponMagical=[WeaponType]: [WeaponShortName] - [EnchantName] [SpellLvlNum]`  | \_SRE_EnchHonedSwordDunmer03        | Honed Ancient Nord Sword of Dunmer Bane | Sword: Honed Ancient Nord - Dunmer Killer I   |
+| `WeaponMagical=[MagicWeaponUniqueName] [WeaponType] of [SpellSchool]`          | \_SRE_EnchForswornSwordAbsorbSoul01 | Sword of Lost Souls                     | Lost Souls Sword of Destruction               |
 
 *[Translated]: This value is automatically translated from whatever you defined in `_Names.txt`.
 *[Winning ESP]: Values are taken from the winning esp instead of the currently selected. Thus, making renaming compatible with patches already present in your load order.
