@@ -710,6 +710,8 @@ end;
 
 function Finalize: Integer;
 begin
+  ProcessAutoRenameQueue; // Process items in queue before the script ends
+
   _WarningShowAll;
 
   if (gProcessingType = ptFileExport) and (not gDebugMode) then begin

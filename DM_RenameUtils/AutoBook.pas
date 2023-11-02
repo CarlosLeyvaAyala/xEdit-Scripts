@@ -9,6 +9,7 @@ begin
     Result := CreateSortedList;
     try
         spell := LinksTo(ElementByPath(aBook, 'DATA\Spell'));
+        autoRenameQueue.Add(spell);
         // Get inherited spell tags
         Result := GetSpellDataForParent(spell);
         // Generated spell name

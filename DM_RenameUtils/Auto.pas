@@ -159,4 +159,12 @@ begin
     aTags.Add( FmtNameValue(aNewTag, val) );
 end;
 
+procedure ProcessAutoRenameQueue;
+var
+    i: Integer;
+begin
+    for i := 0 to autoRenameQueue.Count - 1 do
+        Process(ObjectToElement(autoRenameQueue[i]));
+end;
+
 end.
