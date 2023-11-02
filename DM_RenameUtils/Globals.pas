@@ -3,6 +3,9 @@ unit Globals;
 var
     cfgNames: TStringList;
     cfgFormats: TStringList;
+    // Queue for auto processing things at a later time. 
+    // For example, when auto renaming spell books, their respective spells get renamed too.
+    autoRenameQueue: TList;
 const
     gExtDebugInfo = false;
 
@@ -50,6 +53,7 @@ begin
     cfgNames.LoadFromFile(ScriptsPath + 'DM_RenameUtils\_Names.ini');
     cfgFormats := TStringList.Create;
     cfgFormats.LoadFromFile(ScriptsPath + 'DM_RenameUtils\_Formats.ini');
+    autoRenameQueue := TList.Create;
 end;
 
 // Unload configuration files
@@ -57,6 +61,7 @@ procedure Auto_UnloadConfig;
 begin
     cfgNames.Free;
     cfgFormats.Free;
+    autoRenameQueue.Free;
 end;
 
 // Had to do this because aList.Values[index] doesn't work for some reason.
@@ -78,6 +83,23 @@ begin
         Result := ''
     else
         Result := Value(aList, i);
+end;
+
+// Replace using a regular expression.
+function RegexReplace(subject, regex, replacement: string): string;
+var
+  r: TPerlRegex;
+begin
+  r := TPerlRegex.Create;
+  try
+    r.RegEx := regex;
+    r.Subject := subject;
+    r.Replacement := replacement;
+    r.ReplaceAll;
+    Result := r.Subject;
+  finally
+    r.Free;
+  end;
 end;
 
 end.
