@@ -22,19 +22,83 @@ begin
     rx := TPerlRegex.Create;
     input := TStringList.Create;
     input.LoadFromFile('Edit scripts\input.txt');
+    
+    // Create or clean enchantments first
     for i := 0 to input.Count - 1 do 
         CreateEnchantment(input[i]);
     // gFileTo := FileByName('Vokriinator as Enchantments.esp');
 end;
 
+function NormalizeName(n: string): string;
+begin
+    Result := StringReplace(n, ' ', '', [rfReplaceAll]);
+    Result := StringReplace(Result, '[', '', [rfReplaceAll]);
+    Result := StringReplace(Result, ']', '', [rfReplaceAll]);
+end;
+
+function CreateEnchantmentEdid(e: IInterface): string;
+const 
+    fmt = 'Ench_%s';
+begin
+    Result :=  Format(fmt, [EditorID(e)]);
+end;
+
+procedure RemoveEffects(e: IInterface); 
+var
+  o: IInterface;
+  i, n: Integer;
+begin
+  o := ElementByPath(e, 'Effects');
+  n := ElementCount(o);
+
+  i := 0;
+  repeat 
+      RemoveByIndex(o, 0, true);
+      Inc(i);
+  until (i >= n);
+end;
+
+function EnchantmentFromTemplate(newEdid: string): IInterface;
+var
+  base: IInterface;
+begin
+  // Copy EnchArmorMuffle "Muffle" [ENCH:00092A77] from Skyrim.esm.
+  base := RecordByFormID(FileByIndex(0), $92A77, true);
+
+  Result := wbCopyElementToFile(base, gFileTo, true, false);
+  Add(Result, 'ENCH', true);
+
+  // Clean copied template
+  SetEditorID(Result, newEdid);
+  SetElementEditValues(Result, 'ENIT\Enchant Type', 'Enchantment');
+  RemoveEffects(Result);
+end;
+
 procedure CreateEnchantment(line: string);
 var 
-    armor, mgef: IInterface;
+    armor, mgef, ench: IInterface;
+    enchEdid: string;
+const 
+    fmt = 'Ench_%s';
 begin
     armor := ElementFromLine(line, 'ARMO', 2, 1);
     mgef := ElementFromLine(line, 'MGEF', 4, 3);
-    AddMessage(Name(armor));
-    AddMessage(Name(mgef));
+    gFileTo := GetFile(armor);
+    
+    enchEdid :=  Format(fmt, [EditorID(armor)]);
+    ench := FindRecordByEdid('ENCH', enchEdid, GetFileName(gFileTo));
+    
+    if not Assigned(ench) then begin
+        AddMessage('Create ' + enchEdid);
+        EnchantmentFromTemplate(enchEdid);
+    end
+    else begin
+        AddMessage('Clean' + enchEdid);
+        RemoveEffects(ench);
+    end;
+
+    // AddMessage(enchEdid);
+    // AddMessage(Name(mgef));
 end;
 
 function ElementFromLine(line, signature: string; rxGroupEdid, rxGroupEsp: integer): IInterface;
