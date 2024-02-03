@@ -12,13 +12,20 @@ implementation
 var
     recCount: Integer;
     output: TStringList;
+    gFileTo: IInterface;
+    rx: TPerlRegex;
 
 function Initialize: Integer;
 var 
   i: integer;
   f: IInterface;
 begin
+  rx := TPerlRegex.Create;
   output := TStringList.Create;
+  gFileTo := FileByName('Vokriinator as Enchantments.esp');
+  // f := FileByName('[NINI] Karlstein.esp');
+  // AddMasterIfMissing(f, 'Vokriinator as Enchantments.esp');
+
   // iterate over loaded plugins
   // for i := 0 to Pred(FileCount) do begin
   //   f := FileByIndex(i);
@@ -273,12 +280,116 @@ begin
     end;
 end;
 
+procedure PrintMgEffectData(e: IInterface; path: string);
+var 
+  s: string;
+const 
+  p = 'Magic Effect Data\DATA\';
+begin
+  s := Format('%-30s %s', [path, GetElementEditValues(e, p + path)]);
+  AddMessage(s);
+end;
+
+procedure EditMgEffectData(e: IInterface; path, value: string);
+const 
+  p = 'Magic Effect Data\DATA\';
+begin
+  SetElementEditValues(e, p + path, value);
+end;
+
+procedure VokriiRemoveConditions(e: IInterface); 
+var
+  o: IInterface;
+  i, n: Integer;
+begin
+  o := ElementByPath(e, 'Conditions');
+  n := ElementCount(o);
+
+  i := 0;
+  repeat 
+      RemoveByIndex(o, 0, true);
+      Inc(i);
+  until (i >= n);
+end;
+
+function VokriiGetPerkName(e: IInterface): string; 
+var
+  s: string;
+//   o: IInterface;
+//   i, n: Integer;
+const 
+  // Ordinator
+  ofmtXX =  'A_DM_%s_0%s_OrdPerk_%s';
+  ofmt100 = 'A_DM_%s_100_OrdPerk_%s';
+  // Vokrii
+  vfmtXX =  'A_DM_%s_0%s_VokPerk_%s';
+  vfmt100 = 'A_DM_%s_100_VokPerk_%s';
+  // Vokriinator
+  rfmtXXX =  'A_DM_%s_%s_VtrPerk_%s';
+  // rfmt100 = 'A_DM_VtrPerk_%s_100_%s';
+begin
+  s := StringReplace(GetElementEditValues(e, 'FULL'), ' ', '', [rfReplaceAll]);
+  Result := 'ERROR';
+  rx.Subject := EditorID(e);
+
+  rx.RegEx := 'ORD_(\w{3})(\d{2})';
+  if rx.Match then begin
+    Result := Format(ofmtXX, [UpperCase(rx.Groups[1]), rx.Groups[2], s]);
+    Exit;
+  end;
+
+  rx.RegEx := 'DMVTR_(\w{3}).*?(\d{3})';
+  if rx.Match then begin
+    Result := Format(rfmtXXX, [UpperCase(rx.Groups[1]), rx.Groups[2], s]);
+    Exit;
+  end;
+end;
+
+procedure VokriiProcessPerk(e: IInterface);
+var
+  s, full, desc: string;
+  o, mgef: IInterface;
+begin
+  VokriiRemoveConditions(e);
+
+  s := VokriiGetPerkName(e);
+  full := GetElementEditValues(e, 'FULL');
+  desc := GetElementEditValues(e, 'DESC');
+  SetEditorID(e, s);
+  
+  o := MainRecordByEditorID(GroupBySignature(gFileTo, 'MGEF'), 'A_DM_PIC_100_VokEnch_PerfectTouch');
+  mgef := wbCopyElementToFile(o, gFileTo, true, true);
+  SetEditorID(mgef, StringReplace(s, 'Perk', 'Ench', [rfReplaceAll]));
+  SetElementEditValues(mgef, 'FULL', full);
+  SetElementEditValues(mgef, 'DNAM', desc);
+  SetEditValue(ElementByPath(mgef, 'Magic Effect Data\DATA\Perk to Apply'), Name(e));
+end;
+
+function FindRecordByEdid(signature, edid, fileName: string): IInterface;
+var
+    keys: IwbGroupRecord;
+    key, k, esp, f: IInterface;
+    i: Integer;
+begin
+    Result := nil;
+    esp := FileByName(fileName);
+
+    if not Assigned(esp) then begin 
+        AddMessage(Format('Can not find "%s" because "%s" does not exist.', [edid, fileName]));
+        Exit;
+    end;
+
+    Result := MainRecordByEditorID(GroupBySignature(esp, signature), edid);
+    if not Assigned(Result) then 
+        AddMessage(Format('"%s" was not found in "%s".', [edid, fileName]));
+end;
+
 function Process(e: IInterface): Integer;
 var
     v: variant;
 //     s: TStringList;
     s, s2, basePath: string;
-    isUnique, o, g: IInterface;
+    isUnique, o, g, parentPerk: IInterface;
     i, j, n, m: Integer;
     r: Real;
     elem, elem2: IwbGroupRecord;
@@ -288,6 +399,114 @@ const
     fitness = 'Fat';
     fmtSkmp = '{k: "%s", id: getFormFromUniqueId("Skimpify Enchantments.esp|0x%s")?.getFormID()},';
 begin
+  o := FindRecordByEdid('ARMO', '0AllisGoldBody', '[Melodic] All is Gold.esp');
+  AddMessage(Name(o));
+  
+// AddNewFileName('Vokriinator as Enchantments.esp', true)
+// if(OverrideCount(MasterOrSelf(e)) = 0)then
+//   wbCopyElementToFile(WinningOverride(e), gFileTo, true, true);
+//  SetEditorID(e, 'Karlstein');
+// SetEditorID(e, 'DM_' + EditorID(e));
+// AddMessage(IntToStr(OverrideCount(MasterOrSelf(e))));
+
+// SetElementNativeValues(e, 'EITM', nil);
+  // VokriiProcessPerk(e);
+  // rx.Subject := EditorID(e);
+  // rx.RegEx := 'A_DM_(\w+)_(\w{3}_\d{3})_(.*)';
+  // rx.Replacement := 'A_DM_\2_\1_\3';
+  // rx.ReplaceAll;
+  // SetEditorID(e, rx.Subject);
+  // if ContainsText(EditorID(e), 'NPC_') then begin 
+  //   AddMessage(EditorID(e));
+  //   Remove(e);
+  // end;
+  // AddMessage(EditorID(e));
+
+  // EditMgEffectData(e, 'Casting Light', 'NULL - Null Reference [00000000]');
+  // EditMgEffectData(e, 'Spellmaking\Area', '0');
+  // EditMgEffectData(e, 'Spellmaking\Casting Time', '0');
+  // EditMgEffectData(e, 'Explosion', 'NULL - Null Reference [00000000]');
+  // EditMgEffectData(e, 'Delivery', 'Touch');
+  // EditMgEffectData(e, 'Casting Art', 'NULL - Null Reference [00000000]');
+  // EditMgEffectData(e, 'Equip Ability', 'NULL - Null Reference [00000000]');
+  // Exit;
+
+  // AddMessage(#13#10#13#10);
+  // AddMessage(EditorID(e));
+  // PrintMgEffectData(e, 'Base Cost');
+  // PrintMgEffectData(e, 'Magic Skill');
+  // PrintMgEffectData(e, 'Resist Value');
+  // PrintMgEffectData(e, 'Counter Effect count');
+  // PrintMgEffectData(e, 'Casting Light');
+  // PrintMgEffectData(e, 'Taper Weight');
+  // PrintMgEffectData(e, 'Hit Shader');
+  // PrintMgEffectData(e, 'Enchant Shader');
+  // PrintMgEffectData(e, 'Minimum Skill Level');
+  // PrintMgEffectData(e, 'Spellmaking\Area');
+  // PrintMgEffectData(e, 'Spellmaking\Casting Time');
+  // PrintMgEffectData(e, 'Taper Curve');
+  // PrintMgEffectData(e, 'Taper Duration');
+  // PrintMgEffectData(e, 'Second AV Weight');
+  // PrintMgEffectData(e, 'Archtype');
+  // PrintMgEffectData(e, 'Actor Value');
+  // PrintMgEffectData(e, 'Projectile');
+  // PrintMgEffectData(e, 'Explosion');
+  // PrintMgEffectData(e, 'Casting Type');
+  // PrintMgEffectData(e, 'Delivery');
+  // PrintMgEffectData(e, 'Second Actor Value');
+  // PrintMgEffectData(e, 'Casting Art');
+  // PrintMgEffectData(e, 'Hit Effect Art');
+  // PrintMgEffectData(e, 'Impact Data');
+  // PrintMgEffectData(e, 'Skill Usage Multiplier');
+  // PrintMgEffectData(e, 'Dual Casting\Art');
+  // PrintMgEffectData(e, 'Dual Casting\Scale');
+  // PrintMgEffectData(e, 'Enchant Art');
+  // PrintMgEffectData(e, 'Equip Ability');
+  // PrintMgEffectData(e, 'Perk to Apply');
+  // PrintMgEffectData(e, 'Casting Sound Level');
+  // PrintMgEffectData(e, 'Script Effect AI\Score');
+  // PrintMgEffectData(e, 'Script Effect AI\Delay Time');
+  // AddMessage(#13#10);
+
+  // PrintMgEffectData(e, '');
+  // PrintMgEffectData(e, '');
+  // PrintMgEffectData(e, '');
+  // PrintMgEffectData(e, '');
+  // PrintMgEffectData(e, '');
+  // AddMessage(GetElementEditValues(e, 'ACBS\Flags\Opposite Gender Anims'));
+  // SetElementNativeValues(e, 'ACBS\Flags\Opposite Gender Anims', 0)
+    // o := ElementByPath(e, 'Conditions');
+    // n := ElementCount(o);
+
+    // i := 0;
+    // repeat 
+    //     parentPerk := EditorID(LinksTo(ElementByPath(ElementByIndex(o, i), 'CTDA\Perk')));
+    //     Inc(i);
+    // until (i >= n) or (parentPerk <> '');
+
+    // i := 0;
+    // repeat 
+    //     s2 := GetElementEditValues(ElementByIndex(o, i), 'CTDA\Actor Value');
+    //     Inc(i);
+    // until (i >= n) or (s2 <> '');
+
+    // parentPerk := EditorID(LinksTo(ElementByPath(ElementByIndex(o, 1), 'CTDA\Perk')));
+    // if parentPerk = '' then 
+    //     parentPerk := EditorID(LinksTo(ElementByPath(ElementByIndex(o, 0), 'CTDA\Perk')));
+    
+    // s2 := GetElementEditValues(ElementByIndex(o, 0), 'CTDA\Actor Value');
+    // if s2 = '' then 
+    //     s2 := GetElementEditValues(ElementByIndex(o, 1), 'CTDA\Actor Value');
+    
+    // AddMessage(Format('%s|%s|%s|%s|%s', [
+    //     EditorID(e), 
+    //     parentPerk,
+    //     GetElementEditValues(e, 'FULL'),
+    //     GetElementEditValues(e, 'DESC'),
+    //     GetElementEditValues(ElementByIndex(o, 0), 'CTDA\Actor Value')
+    //     ]));
+
+    // AddMessage(EditorID(parentPerk));
     // g := GroupBySignature(FileByName('SexLabAroused.esm'), 'KYWD');
     // o := MainRecordByEditorID(g, 'EroticArmor');
     // AddMessage(IntToHex(FormID(o), 1));
@@ -377,7 +596,8 @@ begin
     // AddKeyword(e, 'SLA_ArmorHalfNaked', 'SexLabAroused.esm');
     // AddKeyword(e, 'SLA_ThongGString', 'SexLabAroused.esm');
     // AddKeyword(e, 'SLA_ArmorPartTop', 'SexLabAroused.esm');
-    AddKeyword(e, 'SLA_Brabikini', 'SexLabAroused.esm');
+    // AddKeyword(e, 'SLA_Brabikini', 'SexLabAroused.esm');
+    // RemoveKeyword(e, 'SLA_Brabikini');
     // AddKeyword(e, 'SLA_ArmorHalfNakedBikini', 'SexLabAroused.esm');
     // AddKeyword(e, 'SLA_ArmorHalfNaked', 'SexLabAroused.esm');
     // Add(e, 'EITM', true);
@@ -424,5 +644,6 @@ begin
   // for i := 0 to output.Count - 1 do
   //   AddMessage(output[i]);
   output.Free;
+  rx.Free
 end;
 end.
