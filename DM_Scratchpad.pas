@@ -399,9 +399,6 @@ const
     fitness = 'Fat';
     fmtSkmp = '{k: "%s", id: getFormFromUniqueId("Skimpify Enchantments.esp|0x%s")?.getFormID()},';
 begin
-  o := FindRecordByEdid('ARMO', '0AllisGoldBody', '[Melodic] All is Gold.esp');
-  AddMessage(Name(o));
-  
 // AddNewFileName('Vokriinator as Enchantments.esp', true)
 // if(OverrideCount(MasterOrSelf(e)) = 0)then
 //   wbCopyElementToFile(WinningOverride(e), gFileTo, true, true);
@@ -411,6 +408,7 @@ begin
 
 // SetElementNativeValues(e, 'EITM', nil);
   // VokriiProcessPerk(e);
+  AddMessage(EditorID(e));
   // rx.Subject := EditorID(e);
   // rx.RegEx := 'A_DM_(\w+)_(\w{3}_\d{3})_(.*)';
   // rx.Replacement := 'A_DM_\2_\1_\3';
@@ -420,7 +418,6 @@ begin
   //   AddMessage(EditorID(e));
   //   Remove(e);
   // end;
-  // AddMessage(EditorID(e));
 
   // EditMgEffectData(e, 'Casting Light', 'NULL - Null Reference [00000000]');
   // EditMgEffectData(e, 'Spellmaking\Area', '0');
