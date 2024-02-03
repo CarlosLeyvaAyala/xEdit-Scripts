@@ -26,7 +26,10 @@ begin
     // Create or clean enchantments first
     for i := 0 to input.Count - 1 do 
         CreateEnchantment(input[i]);
-    // gFileTo := FileByName('Vokriinator as Enchantments.esp');
+
+    // Add effects, one by one
+    for i := 0 to input.Count - 1 do 
+        AddEffects(input[i]);
 end;
 
 function NormalizeName(n: string): string;
@@ -36,7 +39,7 @@ begin
     Result := StringReplace(Result, ']', '', [rfReplaceAll]);
 end;
 
-function CreateEnchantmentEdid(e: IInterface): string;
+function GetArmorEnchantmentEdid(e: IInterface): string;
 const 
     fmt = 'Ench_%s';
 begin
@@ -76,16 +79,13 @@ end;
 
 procedure CreateEnchantment(line: string);
 var 
-    armor, mgef, ench: IInterface;
+    armor, ench: IInterface;
     enchEdid: string;
-const 
-    fmt = 'Ench_%s';
 begin
-    armor := ElementFromLine(line, 'ARMO', 2, 1);
-    mgef := ElementFromLine(line, 'MGEF', 4, 3);
+    armor := ArmorFromLine(line);
     gFileTo := GetFile(armor);
     
-    enchEdid :=  Format(fmt, [EditorID(armor)]);
+    enchEdid :=  GetArmorEnchantmentEdid(armor);
     ench := FindRecordByEdid('ENCH', enchEdid, GetFileName(gFileTo));
     
     if not Assigned(ench) then begin
@@ -93,12 +93,46 @@ begin
         EnchantmentFromTemplate(enchEdid);
     end
     else begin
-        AddMessage('Clean' + enchEdid);
+        AddMessage('Clean ' + enchEdid);
         RemoveEffects(ench);
     end;
+end;
 
-    // AddMessage(enchEdid);
-    // AddMessage(Name(mgef));
+procedure AddEffects(line: string);
+var 
+    armor, mgef, ench, effects, newEffect: IInterface;
+    enchEdid: string;
+begin
+    armor := ArmorFromLine(line);
+    mgef := EffectFromLine(line);
+    gFileTo := GetFile(armor);
+    enchEdid :=  GetArmorEnchantmentEdid(armor);
+    ench := FindRecordByEdid('ENCH', enchEdid, GetFileName(gFileTo));
+
+    SetElementEditValues(armor, 'EITM', Name(ench));
+
+    if GetFile(mgef) <> gFileTo then
+        AddMasterIfMissing(
+        gFileTo,
+        GetFileName( GetFile(mgef) )
+    );
+
+    // Create effect
+    effects := ElementByPath(ench, 'Effects');
+    newEffect := ElementAssign(effects, HighInteger, nil, False);
+
+    // Edit effect
+    SetElementEditValues(newEffect, 'EFID', Name(mgef));
+end;
+
+function ArmorFromLine(line: string): IInterface;
+begin
+    Result := ElementFromLine(line, 'ARMO', 2, 1);
+end;
+
+function EffectFromLine(line: string): IInterface;
+begin
+    Result := ElementFromLine(line, 'MGEF', 4, 3);
 end;
 
 function ElementFromLine(line, signature: string; rxGroupEdid, rxGroupEsp: integer): IInterface;
