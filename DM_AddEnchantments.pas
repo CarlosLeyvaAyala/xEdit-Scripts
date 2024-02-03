@@ -10,18 +10,42 @@ implementation
 
 var
     recCount: Integer;
-    output: TStringList;
+    input: TStringList;
     gFileTo: IInterface;
     rx: TPerlRegex;
 
 function Initialize: Integer;
 var 
-  i: integer;
-  f: IInterface;
+    i: integer;
+    f: IInterface;
 begin
-  rx := TPerlRegex.Create;
-  output := TStringList.Create;
-  gFileTo := FileByName('Vokriinator as Enchantments.esp');
+    rx := TPerlRegex.Create;
+    input := TStringList.Create;
+    input.LoadFromFile('Edit scripts\input.txt');
+    for i := 0 to input.Count - 1 do 
+        CreateEnchantment(input[i]);
+    // gFileTo := FileByName('Vokriinator as Enchantments.esp');
+end;
+
+procedure CreateEnchantment(line: string);
+var 
+    armor, mgef: IInterface;
+begin
+    armor := ElementFromLine(line, 'ARMO', 2, 1);
+    mgef := ElementFromLine(line, 'MGEF', 4, 3);
+    AddMessage(Name(armor));
+    AddMessage(Name(mgef));
+end;
+
+function ElementFromLine(line, signature: string; rxGroupEdid, rxGroupEsp: integer): IInterface;
+const 
+    dataRx = '(.*?),(.*?),(.*?),(.*)';
+begin
+    Result := nil;
+    rx.Subject := line;
+    rx.RegEx := dataRx;
+    rx.Match;
+    Result := FindRecordByEdid(signature, rx.Groups[rxGroupEdid], rx.Groups[rxGroupEsp]);
 end;
 
 // Separates a string by capitals.  
@@ -75,28 +99,28 @@ begin
         AddMessage(Format('"%s" was not found in "%s".', [edid, fileName]));
 end;
 
-function Process(e: IInterface): Integer;
-var
-    v: variant;
+// function Process(e: IInterface): Integer;
+// var
+//     v: variant;
 //     s: TStringList;
-    s, s2, basePath: string;
-    isUnique, o, g, parentPerk: IInterface;
-    i, j, n, m: Integer;
-    r: Real;
-    elem, elem2: IwbGroupRecord;
-begin
-    o := FindRecordByEdid('ARMO', '0AllisGoldBody', '[Melodic] All is Gold.esp');
-    AddMessage(Name(o));  
-end;
+//     s, s2, basePath: string;
+//     isUnique, o, g, parentPerk: IInterface;
+//     i, j, n, m: Integer;
+//     r: Real;
+//     elem, elem2: IwbGroupRecord;
+// begin
+//     o := FindRecordByEdid('ARMO', '0AllisGoldBody', '[Melodic] All is Gold.esp');
+//     AddMessage(Name(o));  
+// end;
 
 function Finalize: Integer;
 var
   i: Integer;
 begin
-  // AddMessage(output.commaText);
-  // for i := 0 to output.Count - 1 do
-  //   AddMessage(output[i]);
-  output.Free;
+  // AddMessage(input.commaText);
+  // for i := 0 to input.Count - 1 do
+  //   AddMessage(input[i]);
+  input.Free;
   rx.Free
 end;
 end.
