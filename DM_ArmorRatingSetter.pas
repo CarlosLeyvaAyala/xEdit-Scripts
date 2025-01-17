@@ -20,7 +20,7 @@ var
   nHead, nHands, nLegs, nBody: Byte;
 
 const
-  desiredAR = 35;
+  desiredAR = 70;
   // Made to deal with strange InputQuery behavior
   cancelStr = '***ThIsF0rMw4SCaNcEL1eD!!111***'; 
 
