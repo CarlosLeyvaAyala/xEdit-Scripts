@@ -5,6 +5,7 @@ unit DM_ConvertToArmorType;
     Converts selected armors to Clothing/Light/Heavy.
 }
 
+implementation
 uses xEditApi;
 
 var
@@ -60,6 +61,7 @@ begin
     SwapKeyword(e, 'ArmorGauntlets', 'ClothingHands [KYWD:0010CD13]');
     SwapKeyword(e, 'ArmorHelmet ', 'ClothingHead [KYWD:0010CD11]');
     SwapKeyword(e, 'ArmorBoots', 'ClothingFeet [KYWD:0010CD12]');
+    SwapKeyword(e, 'VendorItemArmor', 'VendorItemClothing [KYWD:0008F95B]');
 
     ConvertToArmorType(e, 'Clothing');
 end;
@@ -70,6 +72,7 @@ begin
     SwapKeyword(e, 'ClothingHands', 'ArmorGauntlets [KYWD:0006C0EF]');
     SwapKeyword(e, 'ClothingHead', 'ArmorHelmet [KYWD:0006C0EE]');
     SwapKeyword(e, 'ClothingFeet', 'ArmorBoots [KYWD:0006C0ED]');
+    SwapKeyword(e, 'VendorItemClothing', 'VendorItemArmor [KYWD:0008F959]');
 end;
 
 procedure ConvertToArmorHeavy(e: IInterface);
@@ -142,19 +145,19 @@ begin
     rgpOptions.Items.Add('&Heavy');
     rgpOptions.ItemIndex := 0;
 
-    btnExit := CreateButton(frm);
-    btnExit.Caption := '&Cancel';
-    btnExit.Cancel := true;
-    btnExit.ModalResult := mrCancel;
-    btnExit.Left := x - 85;
-    btnExit.Top := y + (4 * dy);
-
     btnOk := CreateButton(frm);
     btnOk.Caption := '&Ok';
     btnOk.Default := true;
     btnOk.ModalResult := mrOk;
-    btnOk.Left := btnExit.Left + btnExit.Width + 10;
-    btnOk.Top := btnExit.Top;
+    btnOk.Left := x - 85; 
+    btnOk.Top := y + (4 * dy);
+
+    btnExit := CreateButton(frm);
+    btnExit.Caption := '&Cancel';
+    btnExit.Cancel := true;
+    btnExit.ModalResult := mrCancel;
+    btnExit.Left := btnOk.Left + btnOk.Width + 10;
+    btnExit.Top := btnOk.Top;
 
     if frm.ShowModal <> mrOk then begin
       Result := 1;
