@@ -8,11 +8,15 @@ unit DM_ArmorRatingSetter;
   this script will apply the correct armor rating for each piece.
   This is used for balancing custom armor mods to vanilla game levels.
 }
+interface
 
 uses xEditApi;
 
+implementation
+
 var
   totalAR: Integer;
+  edtAR: TEdit;
   
   // Processing regex:
   //    (\w+),?
@@ -74,11 +78,7 @@ const
   hvHandMult = 0.17;
   hvLegsMult = 0.17;
 
-  // Predefined vanilla armor ratings
-  arLtLeather = 52;
-  arLtGuard = 46;
-  arLtDragonscale = 82;
-  arHvDaedric = 108;
+  invalidRating = -99999999;
 
 // Asks the user to input a value. Made to deal with InputQuery bullshit behavior.
 function PromptQuery(ACaption, APrompt: string): string;
@@ -290,7 +290,7 @@ begin
         for i := 0 to allArmors.count - 1 do begin
             armor := ObjectToElement(allArmors[i]);
             currAR := GetArmorRating(armor);
-            SetArmorRating(armor, currAR + divvy, 'when correcting on last pass');
+            SetArmorRating(armor, currAR + divvy, ' when correcting on last pass');
         end;
     finally
         allArmors.Free;
@@ -301,15 +301,20 @@ function Initialize: Integer;
 var
     s: string;
 begin
-  // s := PromptQuery('Set Armor Rating', 'Expected **total** AR');
-  // totalAR := StrToInt(s);
-    totalAR := desiredAR;
+
+    Result := 0;
+    totalAR := ShowForm;
 
     if totalAR < 0 then begin
         AddMessage('Only positive values are allowed.');
         Result := 1;
     end;
+    
     ObjInit;
+
+    AddMessage(' ');
+    AddMessage('Target armor rating: ' + IntToStr(totalAR));
+    AddMessage(' ');
 end;
 
 function Finalize: Integer;
@@ -321,6 +326,7 @@ begin
     SetUnknownRating;
     DivvyRemaining;
     ObjFree;
+    AddMessage(' ');
 end;
 
 function Process(e: IInterface): Integer;
@@ -332,6 +338,192 @@ begin
         Exit;
     end;
     AddToArmorTypeList(e);
+end;
+
+function CreateButton(AParent: TControl): TButton;
+begin
+  Result := TButton.Create(AParent);
+  Result.Parent := AParent;
+  Result.Left := 0;
+  Result.Top := 0;
+  Result.Width := 180;
+  Result.Height := 32;
+end;
+
+function CreateARButton(AParent: TControl; caption, hint: string; value, left, top: Integer): TButton;
+begin
+  Result := CreateButton(AParent);
+  Result.Caption := caption;
+  Result.Left := left;
+  Result.Top := top;
+  Result.OnClick := OnArBtnClick;
+  Result.Tag := value;
+  Result.Hint := hint;
+  Result.Width := 120;
+end;
+
+procedure OnArBtnClick(Sender: TObject);
+begin
+  edtAR.Text := IntToStr(TButton(Sender).Tag);
+end;
+
+procedure OnArBtnChange(Sender: TObject);
+begin
+  edtAR.Text := IntToStr(TButton(Sender).Tag);
+end;
+
+function ShowForm: Integer;
+var
+  frm: TForm;  
+  btnExit, btnOk: TButton;
+  pnl: TPanel;
+  lbl: TLabel;
+  grpLghtrmr, grpHvyrmr, grpLghtshld, grpHvyshld: TGroupBox;
+begin
+  frm := TForm.Create(nil);
+  Result := invalidRating;
+
+  try
+    pnl := TPanel.Create(frm);
+    pnl.Parent := frm;
+    pnl.BevelOuter := bvNone;
+    pnl.AutoSize := true;
+
+    lbl := TLabel.Create(frm);
+    lbl.Parent := pnl;
+    lbl.Caption := 'New armor rating for the selected armor set:';
+
+    edtAR := TEdit.Create(frm);
+    edtAR.Parent := pnl;
+    edtAR.Top := 20;
+    edtAR.Width := lbl.Width;
+
+    frm.Caption := 'Change armor rating';
+    frm.Position := poScreenCenter;
+    frm.BorderStyle := bsDialog;
+    frm.Height := 600;
+    frm.Width := 880;
+    frm.ShowHint := true;
+
+    btnOk := CreateButton(frm);
+    btnOk.Caption := '&Ok';
+    btnOk.Default := true;
+    btnOk.ModalResult := mrOk;
+
+    btnExit := CreateButton(frm);
+    btnExit.Caption := '&Cancel';
+    btnExit.Cancel := true;
+    btnExit.ModalResult := mrCancel;
+    btnExit.Tag := 2;
+
+    pnl.Left := (frm.ClientWidth div 2) - (pnl.ClientWidth div 2);
+
+    // ==================================
+    grpLghtrmr := TGroupBox.Create(frm);
+    grpLghtrmr.Parent := frm;
+    grpLghtrmr.Left := 15;
+    grpLghtrmr.Top := 15;
+    grpLghtrmr.Width := 410;
+    grpLghtrmr.Height := 205;
+    grpLghtrmr.Caption := 'Light Armor';
+
+    CreateARButton(grpLghtrmr, 'Hide', 'Hide, Vampire', 40, 15, 30);
+    CreateARButton(grpLghtrmr, 'Studded', 'Studded', 43, 145, 30);
+    CreateARButton(grpLghtrmr, 'Fur', 'Fur, Guard', 46, 275, 30);
+
+    CreateARButton(grpLghtrmr, 'Leather', 'Leather, Forsworn, Thalmor Armor', 52, 15, 72);
+    CreateARButton(grpLghtrmr, 'Elven', 'Elven', 58, 145, 72);
+    CreateARButton(grpLghtrmr, 'Chitin', 'Chitin', 60, 275, 72);
+
+    CreateARButton(grpLghtrmr, 'Dawnguard', 'Dawnguard', 61, 15, 114);
+    CreateARButton(grpLghtrmr, 'Scaled', 'Scaled, Elven Gilded', 64, 145, 114);
+    CreateARButton(grpLghtrmr, 'Glass', 'Glass', 76, 275, 114);
+
+    CreateARButton(grpLghtrmr, 'Stalhrim', 'Stalhrim', 78, 15, 156);
+    CreateARButton(grpLghtrmr, 'Dragonscale', 'Dragonscale', 82, 145, 156);
+
+    // ==================================
+    grpHvyrmr := TGroupBox.Create(frm);
+    grpHvyrmr.Parent := frm;
+    grpHvyrmr.Left := 445;
+    grpHvyrmr.Top := 15;
+    grpHvyrmr.Width := 410;
+    grpHvyrmr.Height := 205;
+    grpHvyrmr.Caption := 'Heavy Armor';
+
+    CreateARButton(grpHvyrmr, 'Iron', 'Iron, Ancient Nord', 60, 15, 30);
+    CreateARButton(grpHvyrmr, 'Banded Iron', 'Banded Iron', 63, 145, 30);
+    CreateARButton(grpHvyrmr, 'Steel', 'Steel', 72, 275, 30);
+
+    CreateARButton(grpHvyrmr, 'Dwarven', 'Dwarven, Dawnguard', 78, 15, 72);
+    CreateARButton(grpHvyrmr, 'Steel Plate', 'Steel Plate, Chitin', 87, 145, 72);
+    CreateARButton(grpHvyrmr, 'Orcish', 'Orcish', 90, 275, 72);
+
+    CreateARButton(grpHvyrmr, 'Nordic', 'Nordic', 93, 15, 114);
+    CreateARButton(grpHvyrmr, 'Ebony', 'Ebony', 96, 145, 114);
+    CreateARButton(grpHvyrmr, 'Dragonplate', 'Dragonplate, Stalhrim', 102, 275, 114);
+
+    CreateARButton(grpHvyrmr, 'Daedric', 'Daedric', 108, 15, 156);
+
+    // ==================================
+    grpLghtshld := TGroupBox.Create(frm);
+    grpLghtshld.Parent := frm;
+    grpLghtshld.Left := 15;
+    grpLghtshld.Top := grpLghtrmr.Top + grpLghtrmr.Height + 15;
+    grpLghtshld.Width := 410;
+    grpLghtshld.Height := 163;
+    grpLghtshld.Caption := 'Light Shield';
+
+    CreateARButton(grpLghtshld, 'Leather', 'Leather, Hide, Studded', 15, 15, 30);
+    CreateARButton(grpLghtshld, 'Elven', 'Elven, Elven Gilded', 21, 145, 30);
+    CreateARButton(grpLghtshld, 'Chitin', 'Chitin', 25, 275, 30);
+
+    CreateARButton(grpLghtshld, 'Dawnguard', 'Dawnguard', 26, 15, 72);
+    CreateARButton(grpLghtshld, 'Glass', 'Glass', 27, 145, 72);
+    CreateARButton(grpLghtshld, 'Dragonscale', 'Dragonscale', 29, 275, 72);
+
+    CreateARButton(grpLghtshld, 'Stalhrim', 'Stalhrim', 30, 15, 114);
+
+    // ==================================
+    grpHvyshld := TGroupBox.Create(frm);
+    grpHvyshld.Parent := frm;
+    grpHvyshld.Left := 445;
+    grpHvyshld.Top := grpLghtshld.Top;
+    grpHvyshld.Width := 410;
+    grpHvyshld.Height := 163;
+    grpHvyshld.Caption := 'Heavy Shield';
+
+    CreateARButton(grpHvyshld, 'Iron', 'Iron', 20, 15, 30);
+    CreateARButton(grpHvyshld, 'Banded Iron', 'Banded Iron', 22, 145, 30);
+    CreateARButton(grpHvyshld, 'Steel', 'Steel, Steel Plate, Chitin', 24, 275, 30);
+
+    CreateARButton(grpHvyshld, 'Dwarven', 'Dwarven, Dawnguard, Nordic', 26, 15, 72);
+    CreateARButton(grpHvyshld, 'Stalhrim', 'Stalhrim', 29, 145, 72);
+    CreateARButton(grpHvyshld, 'Orcish', 'Orcish', 30, 275, 72);
+
+    CreateARButton(grpHvyshld, 'Ebony', 'Ebony', 32, 15, 114);
+    CreateARButton(grpHvyshld, 'Dragonplate', 'Dragonplate', 34, 145, 114);
+    CreateARButton(grpHvyshld, 'Daedric', 'Daedric', 36, 275, 114);
+
+    // ==================================
+    pnl.Top := grpLghtshld.Top + grpLghtshld.Height + 35;
+
+    btnOk.Top := pnl.Top + pnl.Height + 40;
+    btnExit.Top := btnOk.Top;
+
+    btnOk.Left := frm.ClientWidth - (btnOk.Width * 2) - 20 - 10 ;
+    btnExit.Left := btnOk.Left + btnOk.Width + 10;
+
+    // ==================================
+    if frm.ShowModal <> mrOk then begin
+      Result := invalidRating;
+    end
+    else begin
+      Result := StrToInt(edtAR.Text);
+    end;
+  finally
+    frm.Release;
+  end;
 end;
 
 end.
